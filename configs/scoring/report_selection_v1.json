@@ -1,0 +1,42 @@
+{
+  "schema_version": "tricompose.report_selection_config.v1",
+  "score_bundle_schema": "schemas/score_bundle_v1.schema.json",
+  "report_text_metrics": {
+    "names": [
+      "BLEU-1",
+      "BLEU-2",
+      "BLEU-3",
+      "ROUGE-L",
+      "METEOR"
+    ],
+    "tokenization": "lowercase ASCII alphanumeric and underscore tokens",
+    "bleu_smoothing": 1e-09,
+    "rouge_l_variant": "token LCS F1",
+    "meteor_variant": "exact-token METEOR with fragmentation penalty",
+    "reference_based_role": "report accuracy when a paired reference report is explicitly supplied",
+    "pairwise_role": "candidate agreement only; not an individual quality score"
+  },
+  "cxr_report_verifier": {
+    "name": "Qwen2.5-VL generated matching score",
+    "model": "Qwen2.5-VL-7B-Instruct",
+    "prompt_version": "radiology_consistency_json_v1",
+    "range": [
+      0.0,
+      1.0
+    ],
+    "calibration_status": "uncalibrated; calibrate on matched, shuffled, and hard-negative pairs"
+  },
+  "agent_contract": {
+    "consume": "records arrays from tricompose.score_bundle.v1 files",
+    "candidate_level_feature": "qwen25vl_cxr_report_match",
+    "pair_level_features": [
+      "report_pair_bleu_1",
+      "report_pair_bleu_2",
+      "report_pair_bleu_3",
+      "report_pair_rouge_l",
+      "report_pair_meteor"
+    ],
+    "automatic_selection_enabled": false,
+    "reason": "weights and verifier calibration are not established in Phase-0"
+  }
+}

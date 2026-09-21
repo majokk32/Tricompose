@@ -1,0 +1,35 @@
+#!/bin/bash
+#SBATCH --job-name=medim_off10_prepare
+#SBATCH --account=ruishanl_1185
+#SBATCH --partition=main
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=16G
+#SBATCH --time=00:30:00
+#SBATCH --output=/project2/ruishanl_1185/inference_3mod/logs/slurm/medim/%x_%j.out
+#SBATCH --error=/project2/ruishanl_1185/inference_3mod/logs/slurm/medim/%x_%j.err
+
+set -euo pipefail
+umask 077
+
+WORKSPACE=/project2/ruishanl_1185/inference_3mod
+EXPERIMENT="$WORKSPACE/experiments/medim"
+CONFIG="$EXPERIMENT/configs/real_anchor_10_official.yaml"
+PYTHON=/project2/ruishanl_1185/MeDiM/MeDiM_EHR/medim_ehr_env/bin/python
+RUN_ID="${1:?usage: sbatch 05_prepare_official10.sbatch OPAQUE_RUN_ID}"
+
+TASK_CACHE="$WORKSPACE/.cache/medim/${SLURM_JOB_ID}"
+TASK_TMP="$WORKSPACE/.tmp/medim/${SLURM_JOB_ID}"
+mkdir -p "$TASK_CACHE" "$TASK_TMP"
+chmod 700 "$TASK_CACHE" "$TASK_TMP"
+
+export PYTHONPATH="$WORKSPACE/src:$EXPERIMENT/src"
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONNOUSERSITE=1
+export XDG_CACHE_HOME="$TASK_CACHE"
+export TMPDIR="$TASK_TMP"
+
+"$PYTHON" -m medim_ehr_prompt.selection \
+  --config "$CONFIG" \
+  --run-id "$RUN_ID"

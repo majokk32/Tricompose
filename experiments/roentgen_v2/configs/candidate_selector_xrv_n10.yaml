@@ -1,0 +1,11 @@
+schema_version: tricompose.roentgen_v2.candidate_selector_config.v1
+
+model:
+  name: densenet121-res224-all
+  checkpoint: /home1/yikeyang/.torchxrayvision/models_data/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt
+
+selection:
+  expected_case_count: 10
+  expected_candidates_per_case: 8
+  batch_size: 8
+  operating_point: 0.5

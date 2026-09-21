@@ -1,0 +1,31 @@
+{
+  "schema_version": "tricompose-static-score-policy-v1.1",
+  "policy_id": "static_primary_edges_v1_1",
+  "edge_weights": {
+    "ehr_cxr": 0.25,
+    "ehr_report": 0.25,
+    "report_cxr": 0.5
+  },
+  "clinical_weight": 0.9,
+  "report_quality_weight": 0.1,
+  "report_quality_penalties": {
+    "generic_report": 0.05,
+    "unsupported_temporal_comparison_language": 0.1,
+    "repeated_4gram_ratio": 0.05
+  },
+  "hard_gates": [
+    "corrupted_cxr",
+    "blank_cxr",
+    "empty_report",
+    "report_section_contract"
+  ],
+  "secondary_scores_in_total": [],
+  "cost_in_total": false,
+  "missing_edge_rule": "renormalize_over_available_edges",
+  "notes": [
+    "An edge utility is (support_recall - contradiction_rate + 1) / 2.",
+    "Unknown EHR findings are excluded, never converted to negatives.",
+    "Qwen2.5-VL and BioViL are retained as secondary evidence only.",
+    "Cost-aware dynamic decisions are intentionally deferred beyond these baselines."
+  ]
+}

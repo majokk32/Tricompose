@@ -1,0 +1,19 @@
+schema_version: tricompose.cxr_baseline_eval.config.v2
+
+dataset:
+  root: /project2/ruishanl_1185/datasets/three_modalities/v2_labs_vitals
+
+models:
+  xrv_disease_name: densenet121-res224-all
+  xrv_disease_checkpoint: /home1/yikeyang/.torchxrayvision/models_data/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt
+
+evaluation:
+  expected_case_count: 50
+  batch_size: 8
+  operating_point: 0.5
+  bootstrap_repetitions: 2000
+  bootstrap_seed: 2704
+
+quality:
+  z_threshold: 3.5
+  extreme_z_threshold: 6.0

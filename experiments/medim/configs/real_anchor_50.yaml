@@ -1,0 +1,48 @@
+schema_version: medim_ehr_prompt.config.v1
+
+dataset:
+  root: /project2/ruishanl_1185/datasets/three_modalities/v2_labs_vitals
+  split: test
+  allowed_views: [AP, PA]
+  sample_count: 50
+  selection_seed: 2701
+
+prompt:
+  version: ehr_radiology_context_v2
+  max_prompt_tokens: 192
+  include_measurements: true
+  image_description: frontal chest radiograph
+
+medim:
+  repo: /project2/ruishanl_1185/MeDiM/MeDiM_original_infer
+  environment: /project2/ruishanl_1185/MeDiM/MeDiM_EHR/medim_ehr_env
+  checkpoint: /project2/ruishanl_1185/MeDiM/pretrained_models/medim_ckpts/model.safetensors
+  liquid_checkpoint: /project2/ruishanl_1185/MeDiM/pretrained_models/Liquid_V1_7B
+  llama_checkpoint: /project2/ruishanl_1185/MeDiM/pretrained_models/Llama-2-7b-hf
+  vqgan_config: /project2/ruishanl_1185/MeDiM/pretrained_models/chameleon/vqgan.yaml
+  vqgan_checkpoint: /project2/ruishanl_1185/MeDiM/pretrained_models/chameleon/vqgan.ckpt
+  sampling_steps: 100
+  image_size: 512
+  text_tokens: 256
+  image_tokens: 1024
+
+execution:
+  inference_shards: 5
+  cases_per_shard: 10
+
+consistency:
+  environment: /project2/ruishanl_1185/yikeyang_medim_ehr_joint/work/.venv
+  model_name: densenet121-res224-all
+  cache_dir: /home1/yikeyang/.torchxrayvision/models_data
+  weight_filename: nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt
+  operating_point: 0.5
+  bootstrap_repetitions: 2000
+  bootstrap_seed: 2702
+
+official_image_metrics:
+  environment: /project2/ruishanl_1185/MeDiM/MeDiM_EHR/medim_ehr_env
+  fid_mode: legacy_pytorch
+  is_checkpoint: /home1/yikeyang/.cache/torch/hub/checkpoints/inception_v3_google-0cc3c7bd.pth
+  batch_size: 32
+  num_workers: 4
+  is_splits: 10

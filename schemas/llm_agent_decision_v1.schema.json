@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tricompose.local/schemas/llm_agent_decision_v1.schema.json",
+  "title": "TriCompose OpenAI-compatible policy decision",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "producer",
+    "backend",
+    "input",
+    "llm_decision",
+    "guarded_decision",
+    "usage",
+    "elapsed_seconds"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tricompose.llm_agent_decision.v1"
+    },
+    "producer": {
+      "type": "object",
+      "required": ["name", "version", "prompt_version"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "prompt_version": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "backend": {
+      "type": "object",
+      "required": ["model", "protocol"],
+      "properties": {
+        "model": {"type": "string"},
+        "protocol": {
+          "const": "openai_compatible_chat_completions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": ["state_id", "sanitized_state_sha256", "demo"],
+      "properties": {
+        "state_id": {"type": "string"},
+        "sanitized_state_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "demo": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "llm_decision": {"$ref": "#/$defs/action"},
+    "guarded_decision": {
+      "allOf": [
+        {"$ref": "#/$defs/action"},
+        {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": {
+              "enum": ["accepted", "guard_override"]
+            }
+          }
+        }
+      ]
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "elapsed_seconds": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "action": {
+      "type": "object",
+      "required": ["action", "reason_code"],
+      "properties": {
+        "action": {
+          "enum": [
+            "select",
+            "verify_more",
+            "regenerate_report",
+            "stop"
+          ]
+        },
+        "candidate_id": {"type": "string"},
+        "reason_code": {"type": "string"},
+        "status": {
+          "enum": ["accepted", "guard_override"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

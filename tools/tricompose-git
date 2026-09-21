@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+workspace="/project2/ruishanl_1185/inference_3mod"
+exec git --git-dir="${workspace}/.git-tricompose" --work-tree="${workspace}" "$@"

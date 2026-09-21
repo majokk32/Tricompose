@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tricompose.local/schemas/prompt_manifest_v1_1.schema.json",
+  "title": "TriCompose V1.1 prompt manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "ehr_facts_sha256",
+    "one_shared_clinical_intent",
+    "context_is_not_a_radiographic_assertion",
+    "models"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose-cxr-prompts-v1.1"},
+    "case_id": {"type": "string", "pattern": "^case_[0-9]{3,6}$"},
+    "ehr_facts_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "one_shared_clinical_intent": {"const": true},
+    "context_is_not_a_radiographic_assertion": {"const": true},
+    "models": {"type": "object", "minProperties": 1}
+  }
+}

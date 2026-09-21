@@ -1,0 +1,61 @@
+#!/bin/bash
+#SBATCH --job-name=tri_p100_maira2
+#SBATCH --account=ruishanl_1185
+#SBATCH --partition=gpu
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --constraint=a40
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=08:00:00
+#SBATCH --output=/project2/ruishanl_1185/inference_3mod/TriCompose-v1.0/logs/%x_%j.out
+#SBATCH --error=/project2/ruishanl_1185/inference_3mod/TriCompose-v1.0/logs/%x_%j.err
+
+set -euo pipefail
+umask 077
+
+WORKSPACE=/project2/ruishanl_1185/inference_3mod
+PYTHON="$WORKSPACE/maria-2/venv/bin/python"
+MODEL_DIR=/project2/ruishanl_1185/Baselines/hf_cache/hub/models--microsoft--maira-2/snapshots/795a2b1cd4a310624b4e3d14b5a23e41fd273deb
+CXR_ROOT="$WORKSPACE/TriCompose-v1.0/runtime_xhuang90/artifacts/protected/tricompose_v1/cxr_candidates"
+REPORT_ROOT="$WORKSPACE/TriCompose-v1.0/runtime_xhuang90/artifacts/protected/tricompose_v1/report_candidates"
+TASK_CACHE="$WORKSPACE/TriCompose-v1.0/runtime_xhuang90/cache/maira2_${SLURM_JOB_ID}"
+TASK_TMP="$WORKSPACE/TriCompose-v1.0/runtime_xhuang90/tmp/maira2_${SLURM_JOB_ID}"
+
+for required in "$PYTHON" "$MODEL_DIR" \
+  "$CXR_ROOT/cxr_gpt2_pool100_roentgen_v2_s2_20260810_001" \
+  "$CXR_ROOT/cxr_gpt2_pool100_sana_s2_20260810_001" \
+  "$CXR_ROOT/cxr_gpt2_pool100_pixart_s2_20260810_001"
+do
+  if ! test -e "$required"; then
+    printf 'status=failed reason=missing_required_asset path=%s\n' "$required" >&2
+    exit 1
+  fi
+done
+
+mkdir -p "$TASK_CACHE" "$TASK_TMP"
+chmod 700 "$TASK_CACHE" "$TASK_TMP"
+
+export PYTHONPATH="$WORKSPACE/TriCompose-v1.0/runtime_xhuang90/src:$WORKSPACE/TriCompose-v1.0/src:$WORKSPACE/src"
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONNOUSERSITE=1
+export XDG_CACHE_HOME="$TASK_CACHE/xdg"
+export HF_HOME="$TASK_CACHE/huggingface"
+export HF_MODULES_CACHE="$TASK_CACHE/huggingface/modules"
+export TORCH_HOME="$TASK_CACHE/torch"
+export CUDA_CACHE_PATH="$TASK_CACHE/cuda"
+export TMPDIR="$TASK_TMP"
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export TRANSFORMERS_VERBOSITY=error
+export TOKENIZERS_PARALLELISM=false
+
+"$PYTHON" "$WORKSPACE/tools/run_tricompose_v1_report.py" \
+  --cxr-run "$CXR_ROOT/cxr_gpt2_pool100_roentgen_v2_s2_20260810_001" \
+  --cxr-run "$CXR_ROOT/cxr_gpt2_pool100_sana_s2_20260810_001" \
+  --cxr-run "$CXR_ROOT/cxr_gpt2_pool100_pixart_s2_20260810_001" \
+  --output-root "$REPORT_ROOT" \
+  --output-run-id report_gpt2_pool100_maira2_allcxr_20260812_001 \
+  --model-id maira2 \
+  --model-dir "$MODEL_DIR"

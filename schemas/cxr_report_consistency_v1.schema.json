@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tricompose.local/schemas/cxr_report_consistency_v1.schema.json",
+  "title": "TriCompose protected CXR-report consistency evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "candidate_id",
+    "source_image_sha256",
+    "report_sha256",
+    "calibration_status",
+    "fact_summary",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tricompose.cxr_report_consistency.v1"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "source_image_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "report_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "calibration_status": {
+      "enum": ["uncalibrated", "calibrated", "not_applicable"]
+    },
+    "fact_summary": {
+      "type": "object",
+      "required": [
+        "support_count",
+        "contradiction_count",
+        "unknown_count",
+        "strong_contradiction_count",
+        "hard_gate_pass"
+      ],
+      "properties": {
+        "support_count": {"type": "integer", "minimum": 0},
+        "contradiction_count": {"type": "integer", "minimum": 0},
+        "unknown_count": {"type": "integer", "minimum": 0},
+        "strong_contradiction_count": {"type": "integer", "minimum": 0},
+        "hard_gate_pass": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "biovil_image_text_similarity": {"type": ["number", "null"]},
+        "qwen25vl_match": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "label_support_rate": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "label_contradiction_rate": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "report_quality_pass": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
+

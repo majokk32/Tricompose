@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriCompose exhaustive execution plan",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "fully_synthetic",
+    "uses_real_patient_input",
+    "ehr_selection",
+    "counts",
+    "actions"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose.execution_plan.v1"},
+    "mode": {"const": "exhaustive_static_v1"},
+    "fully_synthetic": {"const": true},
+    "uses_real_patient_input": {"const": false},
+    "ehr_selection": {
+      "type": "object",
+      "required": [
+        "user_selects_model",
+        "use_prompt",
+        "routing_mode",
+        "model_ids",
+        "strict_cold_start",
+        "prompt_contract",
+        "exploratory_incompatible_model_ids"
+      ],
+      "properties": {
+        "user_selects_model": {"const": false},
+        "use_prompt": {"type": "boolean"},
+        "routing_mode": {
+          "enum": [
+            "unconditional_cold_start_candidate_pool",
+            "prompt_conditioned_promptehr"
+          ]
+        },
+        "model_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "strict_cold_start": {"type": "boolean"},
+        "prompt_contract": {
+          "enum": ["none", "partial_structured_synthetic_ehr_seed"]
+        },
+        "exploratory_incompatible_model_ids": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "ehr_seeds": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "cxr_seeds": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "counts": {"type": "object"},
+    "estimated_relative_cost_units": {"type": "number", "minimum": 0},
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "action_id",
+          "stage",
+          "model_id",
+          "candidate_id",
+          "parent_candidate_ids",
+          "seed",
+          "relative_cost_units"
+        ],
+        "properties": {
+          "action_id": {"type": "string"},
+          "stage": {"type": "string"},
+          "model_id": {"type": "string"},
+          "candidate_id": {"type": "string"},
+          "parent_candidate_ids": {"type": "array", "items": {"type": "string"}},
+          "seed": {"type": ["integer", "null"]},
+          "relative_cost_units": {"type": "number", "minimum": 0}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+schema_version: tricompose.chexgenbench_pixart.official_metrics_config.v1
+
+workspace: /project2/ruishanl_1185/inference_3mod
+
+dataset:
+  root: /project2/ruishanl_1185/datasets/three_modalities/v2_labs_vitals
+
+official_repo:
+  root: /project2/ruishanl_1185/inference_3mod/CheXGenBench
+  commit: cc7e91ebcee946836090acb4c399e4f3912280ac
+
+scorers:
+  root: /project2/ruishanl_1185/inference_3mod/CheXGenBench/checkpoints/official-metrics
+  rad_dino_revision: 110cbc18d5133582e320b43d53bf5c44e410c936
+  biovil_t_revision: 301f526e823b805d3fe712d0cf06a66f042789c5
+
+evaluation:
+  expected_case_count: 50
+  batch_size: 16
+  num_workers: 4
+  frd_workers: 8
+  metric_seed: 42

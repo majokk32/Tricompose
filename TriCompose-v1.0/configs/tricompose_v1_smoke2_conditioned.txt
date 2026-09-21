@@ -1,0 +1,5 @@
+# Eligibility-only smoke cohort selected from the pre-fixed 10-case pool.
+# These cases have a positive diagnosis supported by the legacy prompt bridge;
+# selection did not inspect any generated CXR or report output.
+case_006
+case_009

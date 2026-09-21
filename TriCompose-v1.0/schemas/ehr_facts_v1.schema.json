@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriCompose V1 evidence-grounded radiology facts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "extractor_version",
+    "fact_scope",
+    "missing_is_unknown",
+    "patient_context",
+    "facts",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose-facts-v1"},
+    "case_id": {"type": "string"},
+    "extractor_version": {"const": "radiology_facts_v2_legacy_bridge"},
+    "fact_scope": {"const": "latest_complete_synthetic_visit_only"},
+    "missing_is_unknown": {"const": true},
+    "patient_context": {
+      "type": "object",
+      "required": ["age_group", "sex", "source_fields", "mapping_status"],
+      "properties": {
+        "age_group": {
+          "enum": [
+            "young adult",
+            "middle-aged adult",
+            "older adult",
+            "elderly adult",
+            "adult"
+          ]
+        },
+        "sex": {"enum": ["female", "male", "unspecified-sex"]},
+        "source_fields": {
+          "const": ["demographics.age_group", "demographics.sex"]
+        },
+        "mapping_status": {"type": "string"}
+      }
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/fact"}
+    },
+    "summary": {
+      "type": "object",
+      "required": ["radiology_relevant_fact_count", "underconditioned"],
+      "properties": {
+        "radiology_relevant_fact_count": {"type": "integer", "minimum": 0},
+        "underconditioned": {"type": "boolean"}
+      }
+    }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "required": ["category", "state", "evidence", "source_fields"],
+      "properties": {
+        "category": {
+          "enum": [
+            "clinical_indication",
+            "direct_radiographic_finding",
+            "explicit_device"
+          ]
+        },
+        "state": {"enum": ["positive", "negative", "uncertain", "unknown"]},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "source_fields": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

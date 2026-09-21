@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tricompose.roentgen_v2.generation.v1",
+  "title": "TriCompose frozen RoentGen-v2 CXR candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "candidate_id",
+    "modality",
+    "producer",
+    "frozen_model",
+    "input_signature",
+    "official_model_revision",
+    "prompt_version",
+    "prompt_sha256",
+    "seed",
+    "guidance_scale",
+    "num_inference_steps",
+    "dtype",
+    "prompt_token_count",
+    "batch_ordinal",
+    "output",
+    "cost"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose.roentgen_v2.generation.v1"},
+    "case_id": {"pattern": "^case_[0-9]{3}$"},
+    "candidate_id": {"const": "roentgen_v2_seed0"},
+    "modality": {"const": "cxr"},
+    "producer": {"const": "frozen_roentgen_v2_diffusers"},
+    "frozen_model": {"const": true},
+    "input_signature": {"const": "radiology_style_text_to_cxr"},
+    "official_model_revision": {
+      "const": "c88d2bf041a448f505fc13dc009d6991be1c9b0f"
+    },
+    "prompt_version": {
+      "const": "roentgen_v2.ehr_to_radiology_prompt.v1"
+    },
+    "prompt_sha256": {"pattern": "^[0-9a-f]{64}$"},
+    "seed": {"type": "integer", "minimum": 0},
+    "guidance_scale": {"const": 3.0},
+    "num_inference_steps": {"const": 75},
+    "dtype": {"const": "bfloat16"},
+    "prompt_token_count": {"type": "integer", "minimum": 1, "maximum": 77},
+    "batch_ordinal": {"type": "integer", "minimum": 0},
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image_dimensions", "image_sha256"],
+      "properties": {
+        "image_dimensions": {
+          "type": "array",
+          "prefixItems": [{"const": 512}, {"const": 512}],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "image_sha256": {"pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_calls",
+        "estimated_case_seconds",
+        "batch_seconds",
+        "batch_peak_vram_gib"
+      ],
+      "properties": {
+        "model_calls": {"const": 1},
+        "estimated_case_seconds": {"type": "number", "minimum": 0},
+        "batch_seconds": {"type": "number", "minimum": 0},
+        "batch_peak_vram_gib": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

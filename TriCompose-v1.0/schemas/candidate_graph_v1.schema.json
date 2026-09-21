@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriCompose version-1 candidate graph",
+  "type": "object",
+  "required": ["schema_version", "nodes", "edges"],
+  "properties": {
+    "schema_version": {"const": "tricompose.candidate_graph.v1"},
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "modality",
+          "model_id",
+          "parent_ids",
+          "artifact_sha256",
+          "valid",
+          "quality_score",
+          "cost_units"
+        ],
+        "properties": {
+          "candidate_id": {"type": "string"},
+          "modality": {"enum": ["ehr", "cxr", "report"]},
+          "model_id": {"type": "string"},
+          "parent_ids": {"type": "array", "items": {"type": "string"}},
+          "artifact_sha256": {"type": "string"},
+          "valid": {"type": "boolean"},
+          "quality_score": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+          "cost_units": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "edge_id",
+          "source_id",
+          "target_id",
+          "kind",
+          "verifier_model_id",
+          "score",
+          "comparable",
+          "strong_contradiction_count",
+          "cost_units"
+        ],
+        "properties": {
+          "edge_id": {"type": "string"},
+          "source_id": {"type": "string"},
+          "target_id": {"type": "string"},
+          "kind": {"enum": ["ehr_cxr", "cxr_report", "ehr_report"]},
+          "verifier_model_id": {"type": "string"},
+          "score": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+          "comparable": {"type": "boolean"},
+          "strong_contradiction_count": {"type": "integer", "minimum": 0},
+          "cost_units": {"type": "number", "minimum": 0}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,115 @@
+# ---------------------------------------------------------------------------
+# TriCompose safety boundary
+# ---------------------------------------------------------------------------
+
+# Patient-derived, synthetic, generated, or exported artifacts never belong
+# in Git. This includes protected reports and evaluation bundles.
+/artifacts/
+/runtime/
+/.cache/
+/.tmp/
+/logs/
+/TriCompose-v1.0/runtime_xhuang90/
+/TriCompose-v1.0/logs/
+/TriCompose-v1.0/preview/
+/TriCompose-v1.0/clear
+/TriCompose-v1.0/README_xhuang90_pool100_run.md
+
+# Generated evaluation outputs kept next to the V1 source tree. Evaluation
+# implementations under eval/report_v1_1 remain tracked.
+/TriCompose-v1.0/eval/*_pool*/
+/TriCompose-v1.0/eval/*_full*/
+
+# Downloaded/read-only baseline repositories. Record upstream revisions in
+# documentation instead of embedding nested Git repositories or checkpoints.
+/CheXGenBench/
+/CheXagent-2/
+/HALO/
+/MeDiM/
+/PromptEHR/
+/RoenGentv-2/
+/SynEHRgy-v2/
+/cxrmate/
+/maria-2/
+
+# Model weights and packaged model artifacts.
+*.ckpt
+*.safetensors
+*.pth
+*.pt
+*.onnx
+*.h5
+*.pb
+*.tflite
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# Medical/data files that must never be committed accidentally.
+*.dcm
+*.dicom
+*.nii
+*.nii.gz
+*.mha
+*.mhd
+*.nrrd
+*.parquet
+*.feather
+*.arrow
+/data/
+/datasets/
+
+# Python environments, caches, coverage, and build products.
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+
+# Framework and experiment caches.
+wandb/
+mlruns/
+lightning_logs/
+.huggingface/
+.torch/
+.triton/
+
+# Slurm and application logs.
+*.out
+*.err
+*.log
+
+# Local credentials and machine-specific configuration.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+token
+stored_tokens
+
+# Editors, notebooks, operating systems, and local agent state.
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+/.agents/
+/.codex/
+/.git-tricompose/

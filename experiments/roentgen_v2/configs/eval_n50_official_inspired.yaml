@@ -1,0 +1,25 @@
+schema_version: tricompose.roentgen_v2.eval_config.v1
+
+dataset:
+  root: /project2/ruishanl_1185/datasets/three_modalities/v2_labs_vitals
+
+models:
+  xrv_disease_name: densenet121-res224-all
+  xrv_disease_checkpoint: /home1/yikeyang/.torchxrayvision/models_data/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw-lr001-rot45-tr15-sc15-seed0-best.pt
+  sex_checkpoint: /project2/ruishanl_1185/inference_3mod/runtime/eval_models/roentgen_v2_official/mira_sex_resnet-all_epoch_13-step_7125.ckpt
+  age_checkpoint: /project2/ruishanl_1185/inference_3mod/runtime/eval_models/roentgen_v2_official/baseline_models_riken_xray_age_every_model_age_senet154_v2_tl_26_ft_7_fp32.pt
+  biovil_checkpoint: /project2/ruishanl_1185/inference_3mod/runtime/eval_models/roentgen_v2_official/biovil_image_resnet50_proj_size_128.pt
+
+evaluation:
+  expected_case_count: 50
+  batch_size: 8
+  fid_batch_size: 32
+  num_workers: 4
+  operating_point: 0.5
+  ms_ssim_failure_threshold: 0.25
+  bootstrap_repetitions: 2000
+  bootstrap_seed: 2704
+
+quality:
+  z_threshold: 3.5
+  extreme_z_threshold: 6.0

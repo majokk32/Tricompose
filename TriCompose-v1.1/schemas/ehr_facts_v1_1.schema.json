@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tricompose.local/schemas/ehr_facts_v1_1.schema.json",
+  "title": "TriCompose V1.1 evidence-grounded facts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "extractor_version",
+    "patient_context",
+    "direct_facts",
+    "clinical_contexts",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose-facts-v1.1"},
+    "case_id": {"type": "string", "pattern": "^case_[0-9]{3,6}$"},
+    "extractor_version": {"type": "string"},
+    "patient_context": {"type": "object"},
+    "direct_facts": {"type": "object"},
+    "clinical_contexts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status", "role", "evidence", "source_fields"],
+        "properties": {
+          "status": {"enum": ["documented", "unknown"]},
+          "role": {"const": "clinical_context_not_direct_radiographic_finding"},
+          "evidence": {"type": "array", "items": {"type": "string"}},
+          "source_fields": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["conditioning_tier", "underconditioned"],
+      "properties": {
+        "conditioning_tier": {
+          "enum": [
+            "direct_radiographic_plus_context",
+            "direct_radiographic_only",
+            "clinical_context_only",
+            "neutral_fallback"
+          ]
+        },
+        "underconditioned": {"type": "boolean"}
+      }
+    }
+  }
+}
+

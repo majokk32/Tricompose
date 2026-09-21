@@ -1,0 +1,26 @@
+{
+  "schema_version": "tricompose.selection_policy.v1",
+  "policy_id": "tricompose_v1_exhaustive_static",
+  "calibration_status": "uncalibrated_engineering_default",
+  "required_edge_kinds": [
+    "ehr_cxr",
+    "cxr_report",
+    "ehr_report"
+  ],
+  "weights": {
+    "ehr_quality": 0.05,
+    "cxr_quality": 0.15,
+    "report_quality": 0.15,
+    "ehr_cxr": 0.20,
+    "cxr_report": 0.30,
+    "ehr_report": 0.15
+  },
+  "cost_penalty_per_unit": 0.001,
+  "minimum_global_score": 0.60,
+  "minimum_edge_score": 0.50,
+  "minimum_margin": 0.02,
+  "strong_contradiction_is_hard_failure": true,
+  "missing_required_evidence_action": "verify_more",
+  "low_score_action": "generate_alternative",
+  "budget_exhausted_action": "stop_without_selection"
+}

@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tricompose.local/schemas/agent_decision_v1.schema.json",
+  "title": "TriCompose Phase-0 agent decision",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "producer",
+    "policy",
+    "candidates",
+    "evidence",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tricompose.agent_decision.v1"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "producer": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "calibration_status",
+        "minimum_score",
+        "minimum_margin"
+      ],
+      "properties": {
+        "policy_id": {"type": "string"},
+        "calibration_status": {"type": "string"},
+        "minimum_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_margin": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "candidates": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["model_id", "artifact_sha256"],
+        "properties": {
+          "model_id": {"type": "string"},
+          "artifact_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "candidate_metric",
+        "candidate_scores",
+        "candidate_score_bundle_sha256",
+        "peer_metrics",
+        "peer_score_bundle_sha256"
+      ],
+      "properties": {
+        "candidate_metric": {
+          "const": "qwen25vl_cxr_report_match"
+        },
+        "candidate_scores": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "candidate_score_bundle_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "peer_metrics": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "peer_score_bundle_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "action",
+        "status",
+        "reason_code",
+        "top_candidate_id",
+        "top_score",
+        "runner_up_score",
+        "margin"
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "select",
+            "verify_more",
+            "regenerate_report",
+            "stop"
+          ]
+        },
+        "status": {
+          "enum": ["provisional", "insufficient_evidence"]
+        },
+        "reason_code": {"type": "string"},
+        "top_candidate_id": {"type": "string"},
+        "tied_top_candidate_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "selected_candidate_id": {"type": "string"},
+        "top_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "runner_up_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "margin": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "suggested_next_verifier": {"type": "string"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"action": {"const": "select"}}
+          },
+          "then": {
+            "required": ["selected_candidate_id"]
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

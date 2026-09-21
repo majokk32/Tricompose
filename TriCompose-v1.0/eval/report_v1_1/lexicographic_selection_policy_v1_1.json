@@ -1,0 +1,30 @@
+{
+  "schema_version": "tricompose-lexicographic-selection-policy-v1.1",
+  "policy_id": "edge_specific_lexicographic_v1_1",
+  "selection_order": [
+    {"field": "hard_gate_failure_count", "direction": "ascending"},
+    {"field": "total_hard_contradiction_count", "direction": "ascending"},
+    {"field": "total_direct_support_count", "direction": "descending"},
+    {"field": "report_cxr_support_recall", "direction": "descending"},
+    {"field": "report_structure_quality_score", "direction": "descending"},
+    {"field": "known_runtime_seconds", "direction": "ascending"},
+    {"field": "triple_candidate_id", "direction": "ascending"}
+  ],
+  "operational_fixed_baseline": {
+    "cxr_model_id": "chexgenbench_sana",
+    "report_model_id": "maira2",
+    "selection_scope": "predeclared_operational_path_not_same_cohort_best"
+  },
+  "diagnostic_score": {
+    "name": "clinical_balance_score_0_100",
+    "formula": "50 * (1 + (total_support_count - total_hard_contradiction_count) / total_known_reference_fact_count)",
+    "used_for_selection": false
+  },
+  "guardrails": [
+    "Unknown and uncertain states never become negative labels.",
+    "Weak EHR priors are reported separately and never become hard contradictions.",
+    "CXR basic validity is a hard gate, not a realism score.",
+    "Qwen2.5-VL and BioViL are excluded from this primary diagnostic selection.",
+    "Uncalibrated XRV thresholds make this run diagnostic, not paper-primary."
+  ]
+}

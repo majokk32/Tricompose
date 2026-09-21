@@ -1,0 +1,16 @@
+{
+  "schema_version": "tricompose.report_selector_policy.v1",
+  "policy_id": "phase0_qwen_margin_v1",
+  "candidate_metric": "qwen25vl_cxr_report_match",
+  "minimum_score": 0.55,
+  "minimum_margin": 0.1,
+  "calibration_status": "uncalibrated_provisional_only",
+  "selection_action": "select",
+  "fallback_action": "verify_more",
+  "suggested_next_verifier": "independent_cxr_report_fact_scorer",
+  "notes": [
+    "This is a deterministic smoke-test policy, not a clinically validated selector.",
+    "BLEU, ROUGE-L, and METEOR peer scores are retained as graph evidence but are not used to choose a winner.",
+    "Calibrate the Qwen score and thresholds on matched, shuffled, and hard-negative pairs before paper-scale use."
+  ]
+}

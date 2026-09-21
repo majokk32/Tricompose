@@ -1,0 +1,4 @@
+# Fixed ordinal smoke cohort. Do not replace with difficulty-selected cases.
+case_000
+case_001
+case_002

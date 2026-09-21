@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriCompose V1 canonical fully synthetic EHR",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "source",
+    "demographics",
+    "diagnoses",
+    "medications",
+    "labs",
+    "vitals",
+    "timeline",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {"const": "tricompose-ehr-v1"},
+    "case_id": {"type": "string", "pattern": "^case_[0-9]{3,6}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "source_schema", "cold_start", "mimic_schema_family"],
+      "properties": {
+        "model_id": {"type": "string"},
+        "source_schema": {"type": "string"},
+        "cold_start": {"type": "boolean"},
+        "mimic_schema_family": {"type": "string"}
+      }
+    },
+    "demographics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["age_group", "sex", "source_tokens", "mapping_status"],
+      "properties": {
+        "age_group": {"type": "string"},
+        "sex": {"type": "string"},
+        "source_tokens": {"type": "array", "items": {"type": "string"}},
+        "mapping_status": {"type": "string"}
+      }
+    },
+    "diagnoses": {"$ref": "#/$defs/events"},
+    "medications": {"$ref": "#/$defs/events"},
+    "labs": {"$ref": "#/$defs/events"},
+    "vitals": {"$ref": "#/$defs/events"},
+    "timeline": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "visit_index",
+          "relative_time_tokens",
+          "diagnosis_ids",
+          "medication_ids",
+          "lab_ids",
+          "vital_ids",
+          "other_tokens"
+        ],
+        "properties": {
+          "visit_index": {"type": "integer", "minimum": 0},
+          "relative_time_tokens": {"type": "array", "items": {"type": "string"}},
+          "diagnosis_ids": {"type": "array", "items": {"type": "string"}},
+          "medication_ids": {"type": "array", "items": {"type": "string"}},
+          "lab_ids": {"type": "array", "items": {"type": "string"}},
+          "vital_ids": {"type": "array", "items": {"type": "string"}},
+          "other_tokens": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strict_valid",
+        "visit_count",
+        "strict_v1_eligible",
+        "source_tokens_preserved_without_dequantization"
+      ],
+      "properties": {
+        "strict_valid": {"const": true},
+        "visit_count": {"type": "integer", "minimum": 1},
+        "strict_v1_eligible": {"type": "boolean"},
+        "source_tokens_preserved_without_dequantization": {"const": true}
+      }
+    }
+  },
+  "$defs": {
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["event_id", "visit_index", "token", "code", "description"],
+        "properties": {
+          "event_id": {"type": "string"},
+          "visit_index": {"type": "integer", "minimum": 0},
+          "token": {"type": "string"},
+          "code": {"type": "string"},
+          "description": {"type": "string"}
+        }
+      }
+    }
+  }
+}
