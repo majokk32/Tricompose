@@ -2,6 +2,8 @@
 
 Last updated: 2026-09-21
 
+[中文版](version_roadmap_zh.md)
+
 This roadmap separates repository implementation from validated research
 claims. A source file or Slurm script being present means that an implementation
 exists; it does not prove that a protected CARC run completed or that a clinical

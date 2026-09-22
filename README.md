@@ -17,6 +17,8 @@ Phase-0 real-anchor smoke test documented later on this page.
 
 Current documentation:
 
+- [`docs/version_roadmap_zh.md`](docs/version_roadmap_zh.md): 中文主逻辑；如果只看
+  一份文件，优先看这个；
 - [`docs/version_roadmap.md`](docs/version_roadmap.md): accurate version
   boundaries, completion gates, CARC execution order, and server-agent prompt;
 - [`TriCompose-v1.0/README.md`](TriCompose-v1.0/README.md): immutable V1.0
