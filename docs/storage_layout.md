@@ -19,7 +19,9 @@ in `src/tricompose/ehr_prompt_cxr/`, not in a combined model experiment.
 ## Protected artifacts
 
 Patient-derived inputs and synthetic outputs are stored only below
-`artifacts/protected/`, with directories mode `0700` and files mode `0600`.
+`artifacts/protected/`. On CARC, protected directories use project-group mode
+`2770` and protected files use mode `0660`, matching the workspace privacy
+contract in `AGENTS.md`.
 
 ```text
 artifacts/protected/

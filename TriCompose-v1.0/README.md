@@ -1,7 +1,12 @@
 # TriCompose v1.0
 
-TriCompose composes existing frozen models at inference time to generate one
-clinically coherent, fully synthetic patient triple:
+> **Frozen historical baseline.** V1.0 remains immutable for regression and
+> comparison. The active status and future plan are in
+> [`../docs/version_roadmap.md`](../docs/version_roadmap.md).
+
+TriCompose composes existing frozen models at inference time to generate
+candidate fully synthetic patient triples intended to be cross-modally
+coherent:
 
 ```text
 (Synthetic structured EHR, Synthetic CXR, Synthetic radiology report)
@@ -512,7 +517,11 @@ Fully synthetic protected runs will use new opaque run IDs under:
 artifacts/protected/tricompose_v1/<run_id>/
 ```
 
-Directories must have mode `0700`; files must have mode `0600`. Synthetic EHR
+The frozen V1.0 implementation originally creates owner-only directories with
+mode `0700` and files with mode `0600`. The current collaborative workspace
+policy uses project-group `2770`/`0660`; authorized migration is performed by
+`tools/set_collaboration_permissions.sh`, while V1.1 creates group-shared
+artifacts natively. Synthetic EHR
 content, generated prompts, images, and reports must never be copied into this
 README, Git history, or public Slurm logs.
 
@@ -589,7 +598,10 @@ artifacts/protected/tricompose_v1/report_candidates/
   v1_smoke2_chexagent2_allcxr_20260806_001/
 ```
 
-All listed protected run directories have owner-only mode `0700`. The
+All listed protected run directories were originally created with V1.0's
+owner-only `0700` policy. They may be migrated to the current CARC
+project-group privacy contract by the authorized collaboration-permissions
+tool. The
 candidate-bank manifest has `complete_generation_candidate_bank=true` and
 `selection_performed=false`.
 
@@ -625,8 +637,9 @@ It contains two complete EHR-CXR-report triples under `triples/`. The run
 manifest records `scoring_used=false`,
 `post_hoc_output_inspection_used=false`, and identifies its scientific role as
 an ordinary fixed-pipeline baseline rather than an optimum. Every triple keeps
-the candidate lineage and hashes, and all directories/files use `0700`/`0600`
-permissions.
+the candidate lineage and hashes. The immutable export was originally created
+with V1.0 owner-only `0700`/`0600` permissions; current CARC collaboration may
+migrate it to project-group `2770`/`0660` without changing its contents.
 
 The current V1 static scoring run is complete:
 
@@ -644,8 +657,9 @@ validated optima. A hash audit found that the two selected CXR files and the
 two selected reports are respectively identical. The two canonical EHRs are
 different, but the current bridge mapped both to the same CHF-only prompt, so
 the duplicate downstream outputs are a prompt-collapse/information-bottleneck
-result rather than two independent successes. Fixing that bridge and evaluating
-a fixed, prompt-diverse cohort precedes V1.1 targeted regeneration.
+result rather than two independent successes. V1.1 fixes the bridge and builds
+the explainable static evaluation foundation. Targeted regeneration is reserved
+for V1.2 after V1.1 calibration and controlled corruption tests.
 
 The final protected teacher handoff containing the bilingual report, fixed
 baseline, scored-best exports, and final scoring artifacts is:

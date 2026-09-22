@@ -22,6 +22,12 @@ diversity.
 V1.0 code and artifacts remain unchanged and serve as the baseline. V1.1 uses
 new schemas, package names, run IDs, and output directories.
 
+The repository-wide version boundaries and server handoff are documented in
+[`../docs/version_roadmap.md`](../docs/version_roadmap.md). In the current
+roadmap, V1.1 covers prompt repair and the explainable static evaluation
+foundation. Error localization and targeted regeneration are reserved for
+V1.2 so they cannot be claimed before the evidence layer is calibrated.
+
 ## CPU-only bridge staging
 
 This command performs no model inference:
@@ -71,6 +77,45 @@ prompts are also within their 300-token limits (observed maxima: 87 and 126).
 No CXR was regenerated during this repair. Image-side diversity and clinical
 response to the new prompts must be checked next with a user-approved Slurm
 smoke test.
+
+## Current implementation matrix
+
+The repository contains more V1.1 implementation than the initial bridge
+smoke described above. Protected execution status must still be verified on
+CARC because generated artifacts are intentionally excluded from Git.
+
+| Component | Repository state | Scientific state |
+|---|---|---|
+| EHR fact and prompt bridge | Implemented and documented on the protected 80-case bridge run | Prompt uniqueness improved; downstream clinical control still requires evaluation |
+| CXR request/candidate contract | Implemented with hash and parent-lineage validation | Frozen-model pool completion must be checked in protected manifests |
+| Report request/candidate contract | Implemented for MAIRA-2, CXRMate-single, LLaVA-Rad, and CheXagent-2 | All four paths remain CXR-conditioned |
+| Report structural quality | Implemented under `TriCompose-v1.0/eval/report_v1_1/` | Reference-free structural quality only, not clinical factuality by itself |
+| Three finding edges | Implemented as support, explicit contradiction, and coverage | Default XRV thresholds remain diagnostic until real matched calibration |
+| Candidate registry | Implemented for the intended 80 × 3 × 4 = 960 lineage grid | Actual protected counts and evidence coverage must be audited |
+| Static baselines | Fixed paths, deterministic random, and exhaustive static reranking implemented | Same-cohort best fixed path is descriptive, not a held-out paper baseline |
+| Targeted repair | Not part of V1.1 | Planned for V1.2 after calibration and corruption tests |
+
+The detailed evaluator contract is in
+[`../TriCompose-v1.0/eval/report_v1_1/README.md`](../TriCompose-v1.0/eval/report_v1_1/README.md).
+
+### Remaining V1.1 priorities
+
+1. Audit which protected pool80/pool160 CXR and report jobs completed.
+2. Record exact XRV, CheXbert, BioViL-T, and Qwen checkpoint revisions and
+   evidence coverage.
+3. Calibrate CXR per-finding thresholds on a disjoint matched real validation
+   set; default 0.5 thresholds are diagnostic only.
+4. Build random-swap, same-disease hard-negative, and minimal fact-perturbation
+   calibration sets.
+5. Verify that prompt repair changes CXR clinical content and does not merely
+   increase text hashes.
+6. Complete fixed, random, all-fixed-path, and exhaustive-static comparisons
+   before implementing V1.2 actions.
+
+Do not call `CXRMate-single` an EHR+CXR model. A strong V1.2 claim that report
+agreement can localize an erroneous CXR requires a genuine independent path
+such as CXRMate-ED or explicit validation as a heuristic using controlled
+error injection.
 
 ## Frozen CXR smoke interface
 

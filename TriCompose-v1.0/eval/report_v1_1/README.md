@@ -3,6 +3,11 @@
 This directory implements the report branch of the project evaluation matrix.
 It is isolated from the teammate-owned EHR and CXR evaluation directories.
 
+Despite its legacy location under `TriCompose-v1.0/eval/`, this is the V1.1
+evaluation implementation. It remains in place to avoid breaking protected run
+scripts and historical paths. New version boundaries and completion gates are
+defined in [`../../../docs/version_roadmap.md`](../../../docs/version_roadmap.md).
+
 ## Scope
 
 The evaluation has three separately reported components:

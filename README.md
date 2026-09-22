@@ -3,6 +3,41 @@
 TriCompose 组合冻结的现有模型，生成并验证 structured EHR、胸部 X-ray 和
 radiology report 三模态候选。
 
+## Current research status — September 2026
+
+The current main line is the fully synthetic V1.0/V1.1 pipeline, not the early
+Phase-0 real-anchor smoke test documented later on this page.
+
+| Version | Current role | Status |
+|---|---|---|
+| V1.0 | Frozen generation graph and static best-of-N baseline | Implemented engineering baseline; evaluators are not clinically calibrated |
+| V1.1 | Prompt de-collapse plus explainable three-edge evaluation | Substantially implemented; calibration and paper-primary validation remain |
+| V1.2 | Error localization and targeted regeneration | Planned, not yet validated |
+| V1.3 | Paper-grade scale-up, independent evaluation, and human review | Planned |
+
+Current documentation:
+
+- [`docs/version_roadmap.md`](docs/version_roadmap.md): accurate version
+  boundaries, completion gates, CARC execution order, and server-agent prompt;
+- [`TriCompose-v1.0/README.md`](TriCompose-v1.0/README.md): immutable V1.0
+  generation graph and static baseline;
+- [`TriCompose-v1.1/README.md`](TriCompose-v1.1/README.md): repaired
+  EHR-to-CXR conditioning and V1.1 execution contracts;
+- [`TriCompose-v1.0/eval/report_v1_1/README.md`](TriCompose-v1.0/eval/report_v1_1/README.md):
+  unknown-safe EHR-CXR, EHR-report, and report-CXR evaluation;
+- [`tricompose_evaluation_research_20260812.md`](tricompose_evaluation_research_20260812.md):
+  literature-backed metric design.
+
+All deployed report generators in the aligned V1/V1.1 pool are
+CXR-conditioned. `CXRMate-single` is not CXRMate-ED, so an independent-path
+error-localization claim is reserved for V1.2 and requires either a true
+EHR+CXR report path or controlled-injection validation.
+
+Package version `0.0.1` and research protocol versions V1.0/V1.1 are separate
+version axes.
+
+## Historical Phase-0 context
+
 早期 Phase-0 首先实现了以下 real-anchor longitudinal smoke path：
 
 ```text
@@ -80,7 +115,7 @@ experiments/<model>/  按模型分类的 adapter、runtime、tests 与 Slurm
 slurm/                完整但不会自动提交的 Slurm 作业
 docs/                 实验契约和运行说明
 logs/slurm/<model>/   按模型分类的 sanitized Slurm 日志
-artifacts/protected/<model>/  按模型分类的患者衍生产物，目录权限 0700
+artifacts/protected/<model>/  按模型分类的患者衍生产物，目录权限 2770
 runtime/              运行时缓存，禁止写入外部模型目录
 .cache/<model>/       按模型分类的框架与 checkpoint 缓存
 .tmp/<model>/         按模型分类的作业临时文件
@@ -158,8 +193,9 @@ SHA-256 为
 LLaVA-Rad report candidate 文件大小为 `485 bytes`，SHA-256 为
 `67c3da58d5516569510ffb8280e943d4cb2e0e9ac62386618783261343bc09e6`。
 
-所有患者衍生产物均位于 `artifacts/protected/`：目录权限为 `0700`，
-文件权限为 `0600`。README 和 Slurm 日志不包含图像、报告正文、患者标识符
+所有患者衍生产物均位于 `artifacts/protected/`。该历史 Phase-0 run 创建时采用
+owner-only `0700/0600`；当前协作策略采用 CARC 项目组 `2770/0660`，并可通过
+`tools/set_collaboration_permissions.sh` 迁移。README 和 Slurm 日志不包含图像、报告正文、患者标识符
 或源数据键。需要人工查看时，只能由获授权用户在 CARC 内从上述 protected
 路径直接打开，不得复制到公开日志或聊天。
 
