@@ -96,3 +96,14 @@ because the unchanged MAIRA adapter uses approximately 27.5 GB float32 weights;
 the previously used 16 GB P100 cannot hold that implementation. Queue snapshot
 availability is not a scheduling guarantee. Submission requires explicit user
 approval after the full script is shown.
+
+On the subsequent resource check, debug's A40 node was drained; the gpu
+partition had an A40 resource snapshot instead. Script
+`31_fixed_image_reports_gpu_a40.sbatch` preserves the frozen plan and resource
+sizes, changes the partition to `gpu`, and restricts the two newly created
+Slurm log files to mode `0660`. The earlier debug script remains unchanged.
+After the full updated script/resource request was shown and the user explicitly
+approved proceeding, script 31 was submitted as **job 12622258**. The first
+status check was `PENDING (Priority)`, not execution or new scoring success.
+Availability is not an immediate-start guarantee. No report/endpoint quality
+improvement is claimed from submission; completed artifacts require validation.

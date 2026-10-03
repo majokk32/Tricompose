@@ -2368,3 +2368,11 @@ are claimed until that job actually runs.
 临床投票。当前两份 EHR 的直接影像条件为零，因此 EHR 相关比率仍为 NA。
 这一轮是同图报告选择的工程对照，不能宣称完整三模态正确性、错误定位成功、
 自适应修复或论文级质量提升。
+
+Subsequent resource check: debug A40 is drained. Prepared
+`slurm/31_fixed_image_reports_gpu_a40.sbatch` for the `gpu` partition with the
+same frozen plan, one A40, two CPU cores, 48G host RAM and twenty-minute cap.
+It also locks down its own Slurm log files. The original debug script is
+unchanged. After full-script/resource review and explicit user approval,
+script 31 was submitted as **job 12622258**. Initial status was
+`PENDING (Priority)`; submission is not execution or a new scoring result.
