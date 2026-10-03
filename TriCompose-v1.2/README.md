@@ -2376,3 +2376,21 @@ It also locks down its own Slurm log files. The original debug script is
 unchanged. After full-script/resource review and explicit user approval,
 script 31 was submitted as **job 12622258**. Initial status was
 `PENDING (Priority)`; submission is not execution or a new scoring result.
+
+Added `audits/audit_fixed_image_reports.py` for the eventual completed run:
+recompute fixed image receipts, all eight proxy rows, pre-BioViL selection,
+paired secondary deltas and CSV; check frozen checkpoint/source hashes,
+ordered pre-spawn reservations, missing endpoint reasons and protected modes.
+It opens no report bodies/image pixels and makes zero model calls. **734
+synthetic-only tests pass**. The audit is ready, not yet run on a completed
+GPU output; clinical correctness remains unverified.
+
+The bounded observer `audits/watch_fixed_image_reports.py` is now running in
+existing CPU allocation 12621834 (one CPU/1G step, no new GPU or `sbatch`). It
+waits at most three hours, polls approved job 12622258 once per minute and
+audits only after completed/publication status. No automatic model retries or
+new submissions are allowed. Private observer status lives in
+`fixed_image_report_watch/observer_12621834_12622258_001/`; the eventual audit
+will be `fixed_image_report_audits/fixed_reports4_audit_12622258_001/`, both
+under the protected V1.2 root. **740 synthetic-only tests pass**. Observer
+startup is not GPU execution, completed audit or clinical validation.

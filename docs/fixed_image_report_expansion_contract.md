@@ -107,3 +107,49 @@ approved proceeding, script 31 was submitted as **job 12622258**. The first
 status check was `PENDING (Priority)`, not execution or new scoring success.
 Availability is not an immediate-start guarantee. No report/endpoint quality
 improvement is claimed from submission; completed artifacts require validation.
+
+## Prepared post-run audit
+
+`TriCompose-v1.2/audits/audit_fixed_image_reports.py` runs inside a CPU Slurm
+allocation after the GPU run completes. It rehashes frozen checkpoint bytes and
+source artifacts; recomputes original image receipts, all eight raw proxy rows,
+pre-endpoint choices, paired endpoint comparisons and CSV; checks complete
+encoder-count/missingness accounting, ordered pre-spawn reservations and private
+modes. It does not open report bodies/image pixels, retokenize report content,
+rerun embeddings, or independently validate clinical truth. Its new protected
+audit run records a hash-bound execution check with zero additional model calls.
+
+The original immutable GPU plan/source files are unchanged while its job is
+pending. Adding this separate auditor does not change routing, thresholds,
+costs, candidates or inference parameters. Audit readiness is not a completed
+post-run validation or a new scientific result.
+
+The complete suite, including the new journal/endpoint audit tests, passes
+734 synthetic-only tests. Source files and original generation parameters
+pinned by the pending GPU plan remain unchanged.
+
+## Bounded existing-allocation observer
+
+`audits/watch_fixed_image_reports.py` observes only approved GPU job 12622258.
+It is running as a one-CPU, 1G step within the existing CPU allocation 12621834,
+not a new `sbatch` job/GPU request. It polls accounting once per minute for at
+most three hours, requires both `COMPLETED` state and a published manifest, and
+then invokes the metadata auditor once with a five-minute audit timeout. It
+cannot submit/cancel jobs, retry models, resume failed runs or change scores.
+Terminal failure, missing publication or deadline expiry does not become
+clinical failure/acceptance. This depends on the existing allocation remaining
+alive and is not a guaranteed notification service.
+
+Its private status directory is
+`artifacts/protected/tricompose_v1_2/fixed_image_report_watch/`
+`observer_12621834_12622258_001/`. The eventual audit, if completed, is under
+`fixed_image_report_audits/fixed_reports4_audit_12622258_001/` in the same
+protected V1.2 root. No report bodies or image pixels enter observer logs. The
+initial CPU step could not find the relative `env` executable and exited before
+the observer started; the retry used absolute executable paths and successfully
+started the observer, with no model calls or original input changes.
+
+All 740 synthetic-only tests pass, including mocked-clock deadline, terminal
+failure and no-premature-audit tests. The GPU job is still pending, not a
+completed result. Slurm's initial estimated 12:50 start is **PDT local time**,
+equivalent to 19:50 UTC; estimates can change and are not completion guarantees.
