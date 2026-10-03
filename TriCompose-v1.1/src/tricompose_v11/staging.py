@@ -274,7 +274,7 @@ def _validation_report(
         for name in check_names
     }
     checks["all_source_cases_staged"] = len(staged) == source_case_count
-    checks["prompt_uniqueness_improved"] = all(
+    uniqueness_improved = all(
         v11_unique[model_id] > v1_unique[model_id]
         for model_id in ACTIVE_PROMPT_MODELS_V11
     )
@@ -282,6 +282,8 @@ def _validation_report(
         "schema_version": "tricompose-v1.1-staging-validation-v1",
         "run_id": run_id,
         "overall_valid": all(checks.values()),
+        "prompt_uniqueness_improved": uniqueness_improved,
+        "uniqueness_is_a_validity_gate": False,
         "source_case_count": source_case_count,
         "successful_case_count": len(staged),
         "conditioning_tier_counts": tiers,

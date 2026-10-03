@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the protected 960-row TriCompose V1.1 candidate score table.
+"""Build a protected, explicitly complete TriCompose V1.1 candidate registry.
 
 One row represents one exact EHR -> CXR -> report lineage.  Available
 deterministic quality evidence is materialized immediately; learned evidence
@@ -32,6 +32,7 @@ from contracts import (
     write_private_json,
     write_private_text,
 )
+from candidate_grid import validate_grid
 
 
 SCHEMA_VERSION = "tricompose-unified-score-table-v1.1"
@@ -53,6 +54,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--report-unimodal-details", required=True)
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--cohort-contract", help="Explicit case/model/seed grid; otherwise require the historical 80-case single-seed grid.")
     return parser
 
 
@@ -78,6 +80,7 @@ def _load_cxr_validity(path: str | Path) -> tuple[dict[str, dict[str, Any]], dic
             raise ValueError("CXR basic-validity candidate ID is absent or duplicated")
         rows[candidate_id] = {
             "status": "computed",
+            "image_sha256": row.get("image_sha256"),
             "corrupted": bool(row.get("corrupted")),
             "blank": row.get("blank"),
             "width": row.get("width"),
@@ -110,6 +113,7 @@ def _load_report_quality(
             raise ValueError("report-unimodal candidate ID is absent or duplicated")
         rows[report_id] = {
             "status": "computed_reference_free_structure",
+            "report_sha256": row.get("report_sha256"),
             "empty": row["empty"],
             "token_count": row["token_count"],
             "sentence_count": row["sentence_count"],
@@ -158,6 +162,8 @@ def _load_ehr_metadata(
             raise ValueError("EHR-facts hash does not match CXR lineage")
         facts = read_json(facts_path, root=staging)
         ehr = read_json(ehr_path, root=staging)
+        if any(cxr["ehr_sha256"] != sha256_file(ehr_path) for cxr in cxrs.values() if cxr["case_id"] == case_id):
+            raise ValueError("canonical EHR hash does not match CXR lineage")
         if facts.get("case_id") != case_id or ehr.get("case_id") != case_id:
             raise ValueError("staging case ID mismatch")
         summary = facts.get("summary")
@@ -397,9 +403,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     ehrs, staging_source = _load_ehr_metadata(args.staging_run, cxrs)
     if set(cxr_quality) != set(cxrs):
-        raise ValueError("CXR basic-validity evidence does not exactly cover 240 CXRs")
+        raise ValueError("CXR basic-validity evidence does not exactly cover the input CXRs")
     if set(report_quality) != set(reports):
-        raise ValueError("report-unimodal evidence does not exactly cover 960 reports")
+        raise ValueError("report-unimodal evidence does not exactly cover the input reports")
+    for key, quality in cxr_quality.items():
+        if quality.get("image_sha256") is not None and quality["image_sha256"] != cxrs[key]["artifact"]["sha256"]:
+            raise ValueError("CXR basic-validity image hash mismatch")
+    for key, quality in report_quality.items():
+        if quality.get("report_sha256") is not None and quality["report_sha256"] != reports[key]["artifact"]["sha256"]:
+            raise ValueError("report structure artifact hash mismatch")
     cxr_models = {str(row["model_id"]) for row in cxrs.values()}
     report_models = {str(row["model_id"]) for row in reports.values()}
     if cxr_models != REQUIRED_CXR_MODELS or report_models != REQUIRED_REPORT_MODELS:
@@ -414,22 +426,25 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         for report_id, report in sorted(reports.items())
     ]
-    if len(rows) != 960 or len(ehrs) != 80 or len(cxrs) != 240:
-        raise ValueError("V1.1 main score table must be exactly 80 EHR / 240 CXR / 960 rows")
-    per_case = Counter(str(row["case_id"]) for row in rows)
-    if set(per_case.values()) != {12}:
-        raise ValueError("each EHR case must have exactly 12 complete candidate rows")
+    contract_path = getattr(args, "cohort_contract", None)
+    contract_source = _workspace_file(contract_path) if contract_path else None
+    contract = json.loads(contract_source.read_text()) if contract_source else None
+    grid = validate_grid(rows, contract)
+    expected_cxrs = len(grid["case_ids"]) * len(grid["cxr_models"]) * len(grid["cxr_seeds"])
+    if len(cxrs) != expected_cxrs:
+        raise ValueError("CXR pool includes unused or missing candidates")
     return {
         "schema_version": SCHEMA_VERSION,
         "table_status": "skeleton_pending_frozen_cross_modal_evidence",
         "selection_ready": False,
+        "cohort_contract": grid,
         "counts": {
             "rows": len(rows),
             "cases": len(ehrs),
             "cxr_candidates": len(cxrs),
             "cxr_models": len(cxr_models),
             "report_models": len(report_models),
-            "rows_per_case": 12,
+            "rows_per_case": len(rows) // len(ehrs),
             "rows_with_hard_gate_failure": sum(
                 bool(row["selection"]["hard_gate_failures"]) for row in rows
             ),
@@ -438,10 +453,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "staging": staging_source,
             "cxr_basic_validity": cxr_quality_source,
             "report_unimodal": report_quality_source,
+            "cohort_contract": None if contract_source is None else {"path": str(contract_source), "sha256": sha256_file(contract_source)},
         },
         "model_grid": {
             "cxr_models": sorted(cxr_models),
             "report_models": sorted(report_models),
+            "cxr_seeds": sorted(grid["cxr_seeds"]),
         },
         "missing_evidence": [
             "xrv_cxr_finding_labels_and_calibration",

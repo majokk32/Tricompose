@@ -1,0 +1,7 @@
+{
+  "schema_version": "tricompose-evaluation-grid-v1",
+  "case_ids": ["case_035", "case_045"],
+  "cxr_seeds": [0, 1],
+  "cxr_models": ["roentgen_v2", "chexgenbench_sana", "chexgenbench_pixart"],
+  "report_models": ["maira2", "cxrmate_single", "llavarad", "chexagent2"]
+}

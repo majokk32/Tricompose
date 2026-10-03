@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from typing import Any
 
 from tricompose_v1.ehr_bridge import CANONICAL_SCHEMA, validate_canonical_ehr
-from tricompose_v1.facts import extract_ehr_facts, validate_ehr_facts
+from tricompose_v1.facts import (
+    FACT_PATTERNS,
+    _latest_visit_sources,
+    _resolve_fact,
+    extract_ehr_facts,
+    validate_ehr_facts,
+)
 
 
 FACT_SCHEMA_V11 = "tricompose-facts-v1.1"
-FACT_EXTRACTOR_VERSION_V11 = "radiology_facts_v1_1_context_bridge_v2"
+FACT_EXTRACTOR_VERSION_V11 = "radiology_facts_v1_1_context_bridge_v3"
 
 # V1 also tracks clinical indications such as chest pain. They remain useful
 # provenance, but only the concepts below may become image conditions.
@@ -27,12 +34,12 @@ IMAGE_CONDITION_FACT_IDS = (
     "central_venous_catheter",
     "enteric_tube",
     "cardiac_pacemaker",
-    "congestive_heart_failure",
 )
 
 # These concepts are context or indications, not asserted image findings.
 # Patterns intentionally use audited diagnosis descriptions only.
 CONTEXT_PATTERNS: dict[str, tuple[str, ...]] = {
+    "congestive_heart_failure": ("congestive heart failure", "heart failure"),
     "chronic_obstructive_pulmonary_disease": (
         "chronic obstructive pulmonary disease",
         "chronic airway obstruction",
@@ -104,6 +111,7 @@ CONTEXT_PATTERNS: dict[str, tuple[str, ...]] = {
 }
 
 CONTEXT_LABELS = {
+    "congestive_heart_failure": "heart failure",
     "chronic_obstructive_pulmonary_disease": "chronic obstructive pulmonary disease",
     "asthma": "asthma",
     "ischemic_heart_disease": "ischemic heart disease",
@@ -124,6 +132,26 @@ CONTEXT_LABELS = {
 
 def _normalized(text: str) -> str:
     return " ".join(text.lower().replace("-", " ").split())
+
+
+def _bounded_polarity(text: str, patterns: tuple[str, ...]) -> str | None:
+    """Conservative lexical evidence, not a diagnostic or clinical labeler.
+
+    Word boundaries prevent organism names such as 'pneumoniae' becoming
+    pneumonia. Ambiguous, historical, or mixed-negation descriptions abstain.
+    V1.0 extraction remains unchanged for reproducibility.
+    """
+    text = _normalized(text)
+    matched = [p for p in patterns if re.search(r"\b" + re.escape(_normalized(p)) + r"\b", text)]
+    if not matched:
+        return None
+    if re.search(r"\b(possible|possibly|probable|suspected|concern for|rule out|cannot exclude|history of|resolved)\b", text):
+        return "uncertain"
+    if any(re.search(r"\b(?:no|without|negative for|absence of)\s+" + re.escape(_normalized(p)) + r"\b", text) for p in matched):
+        return "negative"
+    if re.search(r"\b(no|without|negative for|absence of)\b", text):
+        return "uncertain"
+    return "positive"
 
 
 def _diagnosis_sources(canonical: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -147,7 +175,11 @@ def _extract_contexts(canonical: Mapping[str, Any]) -> dict[str, dict[str, Any]]
         matches = [
             source
             for source in sources
-            if any(pattern in _normalized(source["text"]) for pattern in patterns)
+            if _bounded_polarity(source["text"], patterns) == "positive"
+            # CHF was previously a latest-visit indication. Do not silently
+            # broaden it to a historical diagnosis during this repair.
+            and (context_id != "congestive_heart_failure"
+                 or source["visit_index"] == len(canonical["timeline"]) - 1)
         ]
         evidence: list[str] = []
         source_fields: list[str] = []
@@ -177,6 +209,14 @@ def extract_v11_facts(canonical: Mapping[str, Any]) -> dict[str, Any]:
     if canonical.get("schema_version") != CANONICAL_SCHEMA:
         raise ValueError("V1.1 facts require a canonical TriCompose EHR")
     v1 = extract_ehr_facts(canonical)
+    sources = _latest_visit_sources(canonical)
+    for fact_id, patterns in FACT_PATTERNS.items():
+        matches = []
+        for source in sources:
+            state = _bounded_polarity(source["text"], patterns)
+            if state is not None:
+                matches.append((state, source))
+        v1["facts"][fact_id].update(_resolve_fact(matches))
     contexts = _extract_contexts(canonical)
     direct_positive = [
         fact_id
@@ -201,6 +241,7 @@ def extract_v11_facts(canonical: Mapping[str, Any]) -> dict[str, Any]:
         "case_id": canonical["case_id"],
         "extractor_version": FACT_EXTRACTOR_VERSION_V11,
         "direct_fact_source_version": v1["extractor_version"],
+        "direct_fact_refinement_version": "bounded_conservative_mentions_v1",
         "direct_fact_scope": v1["fact_scope"],
         "context_scope": "all_complete_synthetic_visits_diagnoses_only",
         "missing_is_unknown": True,
@@ -235,7 +276,14 @@ def validate_v11_facts(payload: Mapping[str, Any]) -> None:
     }
     validate_ehr_facts(v1_payload)
     contexts = payload.get("clinical_contexts")
-    if not isinstance(contexts, dict) or set(contexts) != set(CONTEXT_PATTERNS):
+    expected_contexts = set(CONTEXT_PATTERNS)
+    if payload.get("extractor_version") in {
+        "radiology_facts_v1_1_context_bridge_v1", "radiology_facts_v1_1_context_bridge_v2",
+    }:
+        expected_contexts.discard("congestive_heart_failure")
+    elif payload.get("extractor_version") != FACT_EXTRACTOR_VERSION_V11:
+        raise ValueError("unsupported V1.1 fact extractor version")
+    if not isinstance(contexts, dict) or set(contexts) != expected_contexts:
         raise ValueError("V1.1 context inventory is incomplete")
     for context_id, context in contexts.items():
         if context.get("status") not in {"documented", "unknown"}:

@@ -22,8 +22,10 @@ from .cxr_contracts import (
     sha256_file,
     validate_cxr_request,
     write_private_json,
+    write_private_text,
 )
 from .prompts import ACTIVE_PROMPT_MODELS_V11
+from .tokenizer_trace import observe_pipeline_tokenizer, validate_tokenizer_trace
 
 
 CXR_CANDIDATE_SCHEMA_V11 = "tricompose-cxr-candidate-v1.1"
@@ -70,6 +72,7 @@ def _validate_candidate(candidate: Mapping[str, Any]) -> None:
         raise ValueError("V1.1 CXR candidate image hash mismatch")
     if artifact.get("mime_type") != "image/png":
         raise ValueError("V1.1 CXR candidate must be a PNG")
+    validate_tokenizer_trace(candidate, MAIN_PROTECTED_ROOT)
 
 
 def run_cxr_request_run(
@@ -125,7 +128,9 @@ def run_cxr_request_run(
                             raise ValueError("V1.1 final prompt changed before inference")
                         prompts.append(prompt_path.read_text(encoding="utf-8"))
                     seeds = [int(request["seed"]) for request in batch]
-                    result = runtime.generate_batch(prompts, seeds)
+                    with observe_pipeline_tokenizer(runtime) as observer:
+                        result = runtime.generate_batch(prompts, seeds)
+                    traces = [observer.candidate_payload(i, prompts) for i in range(len(batch))]
                     if not (
                         len(result.images)
                         == len(result.prompt_token_counts)
@@ -133,10 +138,11 @@ def run_cxr_request_run(
                     ):
                         raise RuntimeError("V1.1 CXR runtime returned an invalid batch")
                     per_image_seconds = float(result.elapsed_seconds) / len(batch)
-                    for request, image, token_count in zip(
+                    for request, image, token_count, trace in zip(
                         batch,
                         result.images,
                         result.prompt_token_counts,
+                        traces,
                         strict=True,
                     ):
                         case_id = request["case_id"]
@@ -152,6 +158,8 @@ def run_cxr_request_run(
                         image.convert("RGB").save(image_path, format="PNG")
                         os.chmod(image_path, 0o660)
                         write_private_json(case_dir / "request.json", request)
+                        trace_path = write_private_json(case_dir / "tokenizer_trace.json", trace)
+                        final_text = write_private_text(case_dir / "tokenizer_input.txt", trace["positive_tokenizer_text"])
                         final_image_path = (
                             target
                             / "candidates"
@@ -181,6 +189,16 @@ def run_cxr_request_run(
                                 "sha256"
                             ],
                             "adapter_added_prefix": False,
+                            "prompt_sha256_scope": "pipeline_argument_not_final_tokenizer_text",
+                            "tokenizer_input": {
+                                "runtime_observed": True,
+                                "path": str(final_image_path.parent / final_text.name),
+                                "sha256": sha256_file(final_text),
+                                "trace_path": str(final_image_path.parent / trace_path.name),
+                                "trace_sha256": sha256_file(trace_path),
+                                "input_ids_sha256": trace["positive_input_ids_sha256"],
+                                "pipeline_changed_text": trace["pipeline_changed_text"],
+                            },
                             "artifact": {
                                 "path": str(final_image_path),
                                 "sha256": sha256_file(image_path),
@@ -223,6 +241,8 @@ def run_cxr_request_run(
                 "model_revision": model_revision,
                 "frozen_model": True,
                 "adapter_added_prefix": False,
+                "prompt_sha256_scope": "pipeline_argument_not_final_tokenizer_text",
+                "tokenizer_trace_status": "runtime_observed",
                 "source_request_run": str(source),
                 "source_request_run_manifest_sha256": sha256_file(
                     source / "manifest.json"

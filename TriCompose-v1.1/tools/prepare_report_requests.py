@@ -32,6 +32,7 @@ def main() -> int:
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--models", default=",".join(ACTIVE_REPORT_MODELS_V11))
+    parser.add_argument("--cxr-input-audit-run", help="Protected, hash-bound reconstruction sidecar for historical CXRs.")
     args = parser.parse_args()
     result = prepare_report_request_run(
         cxr_runs=args.cxr_run,
@@ -40,6 +41,7 @@ def main() -> int:
         model_ids=tuple(
             item.strip() for item in args.models.split(",") if item.strip()
         ),
+        cxr_input_audit_run=args.cxr_input_audit_run,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

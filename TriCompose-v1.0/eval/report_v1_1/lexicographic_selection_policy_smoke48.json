@@ -1,0 +1,32 @@
+{
+  "schema_version": "tricompose-lexicographic-selection-policy-v1.1",
+  "policy_id": "edge_specific_smoke48_fixed_seed0",
+  "selection_order": [
+    {"field": "hard_gate_failure_count", "direction": "ascending"},
+    {"field": "total_hard_contradiction_count", "direction": "ascending"},
+    {"field": "ehr_direct_support_count", "direction": "descending"},
+    {"field": "report_cxr_support_recall", "direction": "descending"},
+    {"field": "report_structure_quality_score", "direction": "descending"},
+    {"field": "known_runtime_seconds", "direction": "ascending"},
+    {"field": "triple_candidate_id", "direction": "ascending"}
+  ],
+  "operational_fixed_baseline": {
+    "cxr_model_id": "chexgenbench_sana",
+    "report_model_id": "maira2",
+    "cxr_seed": 0,
+    "selection_scope": "predeclared_before_scoring_model_path_and_seed_not_same_cohort_best"
+  },
+  "diagnostic_score": {
+    "name": "clinical_balance_score_0_100",
+    "formula": "50 * (1 + (support - contradiction) / known_facts)",
+    "used_for_selection": false
+  },
+  "guardrails": [
+    "Unknown and uncertain states never become negative labels.",
+    "Absent direct EHR evidence is NA; context is not an imaging diagnosis.",
+    "XRV thresholds are uncalibrated: disagreements are signals, not adjudicated errors.",
+    "BioViL and Qwen are secondary; the displayed balance score is not used for selection.",
+    "Reject rather than select if all candidates fail validity gates.",
+    "Only two independent EHR cases; no paper-grade superiority claim or confidence interval."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "tricompose-ranking-switch-control-policy-v1",
+  "control_id": "pool80_same_observations_remove_runtime_v1",
+  "source_methods": ["fixed", "report_only_static", "report_only_targeted", "static_rerank", "targeted_heuristic"],
+  "model_call_budgets": [4, 8, 12, 20, 30],
+  "runtime_ablation": "remove_runtime_only_keep_original_clinical_prefix_and_id",
+  "candidate_visibility": "same_original_observed_slots_only",
+  "original_proxy_stop_selection": "retain_current_candidate_and_terminal_reason",
+  "routing_or_stopping_changed": false,
+  "secondary_scores_used_for_selection": false,
+  "missing_endpoints": "retain_na_never_substitute_scored_candidate",
+  "image_switch_reference": "unchanged_explicit_cached_ehr_states",
+  "unknown_uncertain_are_negative": false,
+  "weak_context_is_hard_constraint": false,
+  "clinical_accuracy_claim_allowed": false,
+  "cohort_role": "previously_inspected_development_not_held_out"
+}

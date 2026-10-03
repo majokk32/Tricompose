@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and select the 960 TriCompose candidates with edge-specific evidence.
+"""Select an explicit complete TriCompose candidate grid with edge-specific evidence.
 
 This lightweight, training-free stage replaces the legacy symmetric EHR-edge
 scores with the revised EHR-CXR and EHR-report contracts.  It never reads
@@ -33,6 +33,7 @@ from contracts import (
     write_private_text,
 )
 from crossmodal_metrics import score_state_pair
+from candidate_grid import validate_grid, path_key
 
 
 TABLE_SCHEMA = "tricompose-unified-score-table-v1.1"
@@ -202,6 +203,12 @@ def _score_row(
         "ehr_report": _normalized_edge(ehr_report["hard_direct_metrics"]),
         "report_cxr": _normalized_edge(row["cross_modal"]["report_cxr"]),
     }
+    for name, metrics in edges.items():
+        metrics["status"] = (
+            "computed_diagnostic" if metrics["known_reference_fact_count"] > 0
+            else "not_applicable_no_comparable_ehr_facts" if name.startswith("ehr_")
+            else "not_applicable_no_known_classifier_findings"
+        )
     quality = _report_quality(row)
     hard_failures = list(row["selection"]["hard_gate_failures"])
     runtime = row["cost"].get("known_runtime_seconds")
@@ -241,6 +248,7 @@ def _score_row(
         "triple_candidate_id": row["triple_candidate_id"],
         "case_id": row["case_id"],
         "lineage": lineage,
+        "secondary_scores": row.get("secondary_scores", {}),
         "scoring": scoring,
     }
 
@@ -411,6 +419,9 @@ def _csv(rows: list[dict[str, Any]]) -> str:
         "known_runtime_seconds",
         "selection_rank_within_case",
         "selected",
+        "ehr_cxr_status",
+        "ehr_report_status",
+        "biovil_raw_cosine_secondary",
     )
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=fields, lineterminator="\n")
@@ -447,6 +458,9 @@ def _csv(rows: list[dict[str, Any]]) -> str:
                 "known_runtime_seconds": scoring["cost"]["known_runtime_seconds"],
                 "selection_rank_within_case": scoring["selection"]["selection_rank_within_case"],
                 "selected": scoring["selection"]["selected"],
+                "ehr_cxr_status": edge["ehr_cxr"]["status"],
+                "ehr_report_status": edge["ehr_report"]["status"],
+                "biovil_raw_cosine_secondary": row.get("secondary_scores", {}).get("biovil_report_cxr", {}).get("raw_cosine"),
             }
         )
     return output.getvalue()
@@ -456,6 +470,7 @@ def _markdown(payload: dict[str, Any]) -> str:
     fixed = payload["baselines"]["operational_fixed"]["summary"]
     selected = payload["static_reranking"]["summary"]
     fixed_path = payload["baselines"]["operational_fixed"]["path"]
+    calls = payload["static_reranking"]["prospective_model_calls_per_case"]
     lines = [
         "# TriCompose V1.1 Edge-specific Static Selection",
         "",
@@ -464,11 +479,14 @@ def _markdown(payload: dict[str, Any]) -> str:
         "| Method | CXR calls/case | Report calls/case | Balance score (0-100) | Support | Hard contradiction | Coverage |",
         "|---|---:|---:|---:|---:|---:|---:|",
         f"| Operational fixed `{fixed_path}` | 1 | 1 | {fixed['pooled_clinical']['clinical_balance_score_0_100']} | {fixed['pooled_clinical']['support_recall']} | {fixed['pooled_clinical']['hard_contradiction_rate']} | {fixed['pooled_clinical']['coverage']} |",
-        f"| Exhaustive lexicographic reranking | 3 | 12 | {selected['pooled_clinical']['clinical_balance_score_0_100']} | {selected['pooled_clinical']['support_recall']} | {selected['pooled_clinical']['hard_contradiction_rate']} | {selected['pooled_clinical']['coverage']} |",
+        f"| Exhaustive lexicographic reranking | {calls['cxr']} | {calls['report']} | {selected['pooled_clinical']['clinical_balance_score_0_100']} | {selected['pooled_clinical']['support_recall']} | {selected['pooled_clinical']['hard_contradiction_rate']} | {selected['pooled_clinical']['coverage']} |",
         "",
         "Selection order: hard validity gates, total hard contradictions, direct EHR-edge support, CXR-report support, report structure quality, known runtime, deterministic ID.",
         "The displayed balance score is diagnostic and is not used to choose candidates.",
         "Weak EHR priors, Qwen2.5-VL, BioViL, and unavailable per-image realism are excluded from primary selection.",
+        "Classifier disagreements are diagnostic signals, not adjudicated clinical errors. NA EHR edges are not perfect agreement.",
+        f"Rejected cases (no validity-passing candidate): {len(payload['static_reranking']['rejected_cases'])}.",
+        "The fixed-path comparison holds CXR seed fixed. Improvements on the selection scorer are not independent evaluation.",
         "",
     ]
     return "\n".join(lines)
@@ -487,14 +505,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("unsupported edge-specific EHR evidence")
     policy, policy_source = _load_policy(args.policy_config)
     registry_rows = _read_jsonl(table_run / "score_table.jsonl")
+    grid = validate_grid(registry_rows, table_summary.get("cohort_contract"))
     cxr_rows = ehr_edges.get("records", {}).get("ehr_cxr")
     report_rows = ehr_edges.get("records", {}).get("ehr_report")
     if not isinstance(cxr_rows, list) or not isinstance(report_rows, list):
         raise TypeError("edge-specific evidence lacks candidate records")
     cxr_by_id = {str(row["cxr_candidate_id"]): row for row in cxr_rows}
     report_by_id = {str(row["report_candidate_id"]): row for row in report_rows}
-    if len(cxr_by_id) != 240 or len(report_by_id) != 960 or len(registry_rows) != 960:
-        raise ValueError("selection requires the complete 80 x 3 x 4 candidate grid")
+    if len(cxr_by_id) != len(cxr_rows) or len(report_by_id) != len(report_rows):
+        raise ValueError("edge evidence contains duplicate candidate IDs")
+    if set(cxr_by_id) != {row['lineage']['cxr_candidate_id'] for row in registry_rows} or set(report_by_id) != {row['lineage']['report_candidate_id'] for row in registry_rows}:
+        raise ValueError("edge evidence does not exactly cover the declared candidate grid")
 
     rows: list[dict[str, Any]] = []
     for row in registry_rows:
@@ -509,30 +530,40 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
     by_case: dict[str, list[dict[str, Any]]] = defaultdict(list)
     by_path: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    multiple_seeds = len(grid["cxr_seeds"]) > 1
     for row in rows:
         by_case[str(row["case_id"])].append(row)
         by_path[
-            f"{row['lineage']['cxr_model_id']}->{row['lineage']['report_model_id']}"
+            path_key(row['lineage']['cxr_model_id'], row['lineage']['report_model_id'],
+                     row['lineage']['cxr_seed'], multiple_seeds=multiple_seeds)
         ].append(row)
-    if len(by_case) != 80 or {len(values) for values in by_case.values()} != {12}:
-        raise ValueError("every case must have exactly 12 candidates")
-    if len(by_path) != 12 or {len(values) for values in by_path.values()} != {80}:
-        raise ValueError("every fixed model path must cover all 80 cases")
+    if {len(values) for values in by_path.values()} != {len(grid["case_ids"])}:
+        raise ValueError("every fixed model/seed path must cover each case exactly once")
 
     selected: list[dict[str, Any]] = []
+    rejected_cases = []
     for candidates in by_case.values():
         ranked = sorted(candidates, key=selection_key)
         for rank, row in enumerate(ranked, start=1):
             row["scoring"]["selection"]["selection_rank_within_case"] = rank
-            row["scoring"]["selection"]["selected"] = rank == 1
-        selected.append(ranked[0])
+            row["scoring"]["selection"]["selected"] = rank == 1 and row["scoring"]["selection"]["eligible"]
+        if ranked[0]["scoring"]["selection"]["eligible"]:
+            selected.append(ranked[0])
+        else:
+            rejected_cases.append({"case_id": ranked[0]["case_id"], "reason": "no_validity_passing_candidate"})
     selected.sort(key=lambda row: str(row["case_id"]))
 
     fixed_results = {
         path: selection_summary(path_rows) for path, path_rows in sorted(by_path.items())
     }
     fixed_config = policy["operational_fixed_baseline"]
-    fixed_path = f"{fixed_config['cxr_model_id']}->{fixed_config['report_model_id']}"
+    if multiple_seeds and "cxr_seed" not in fixed_config:
+        raise ValueError("multi-seed fixed baseline must predeclare a CXR seed")
+    fixed_seed = fixed_config.get("cxr_seed", grid["cxr_seeds"][0])
+    if fixed_seed not in grid["cxr_seeds"]:
+        raise ValueError("operational fixed baseline seed is absent from the grid")
+    fixed_path = path_key(fixed_config['cxr_model_id'], fixed_config['report_model_id'],
+                          fixed_seed, multiple_seeds=multiple_seeds)
     if fixed_path not in by_path:
         raise ValueError("operational fixed baseline is absent from the model grid")
     descriptive_best_path = min(
@@ -560,6 +591,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "evaluation_status": "diagnostic_uncalibrated_cxr_labels",
+        "cohort_contract": grid,
         "counts": {
             "cases": len(by_case),
             "candidate_rows": len(rows),
@@ -567,6 +599,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "report_candidates": len(report_by_id),
             "fixed_paths": len(by_path),
             "selected_triples": len(selected),
+            "rejected_cases": len(rejected_cases),
         },
         "policy": policy,
         "sources": {
@@ -597,7 +630,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         },
         "static_reranking": {
             "method": "exhaustive_edge_specific_lexicographic_reranking",
-            "prospective_model_calls_per_case": {"cxr": 3, "report": 12, "total": 15},
+            "prospective_model_calls_per_case": {
+                "cxr": len(cxr_by_id) // len(by_case),
+                "report": len(report_by_id) // len(by_case),
+                "total": (len(cxr_by_id) + len(report_by_id)) // len(by_case),
+            },
+            "cost_scope": "generation_only_excludes_evaluator_calls_and_EHR_generation; reported selected-path runtime is not full-bank runtime",
+            "rejected_cases": rejected_cases,
             "summary": selection_summary(selected),
             "selections": [_selection_record(row) for row in selected],
         },

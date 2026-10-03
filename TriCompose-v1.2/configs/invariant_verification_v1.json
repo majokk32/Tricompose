@@ -1,0 +1,15 @@
+{
+  "schema_version": "tricompose-invariant-verification-interface-policy-v1",
+  "profile": "legacy_fourteen_raw_uncalibrated_xrv_chexbert_states",
+  "reference": "fixed_cached_ehr_states_hashes_and_source_categories",
+  "candidate_observation_boundary": "original_requested_slots_only",
+  "unknown_uncertain_are_negative": false,
+  "weak_context_is_hard_constraint": false,
+  "secondary_scores_used_for_verification": false,
+  "source_global_no_finding_adjustment_changes_raw_states": false,
+  "same_image_reports_are_independent_votes": false,
+  "changes_original_routing_selection_or_costs": false,
+  "model_execution_allowed": false,
+  "clinical_repair_success_allowed": false,
+  "clinical_acceptance_allowed": false
+}

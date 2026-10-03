@@ -1,0 +1,14 @@
+{
+  "schema_version": "tricompose-fixed-image-report-control-policy-v1",
+  "control_id": "pool80_sana0_report_only_development_v1",
+  "fixed_image_slot": ["chexgenbench_sana", 0],
+  "report_order": ["maira2", "cxrmate_single", "llavarad", "chexagent2"],
+  "model_call_budgets": [4, 8, 12, 20, 30],
+  "report_methods": ["report_only_static", "report_only_targeted"],
+  "candidate_selection_key": "unchanged_existing_v11_lexicographic",
+  "image_selection_used_report_or_endpoint_scores": false,
+  "secondary_scores_used_for_selection": false,
+  "missing_endpoints": "retain_na_never_substitute_scored_candidate",
+  "clinical_accuracy_claim_allowed": false,
+  "cohort_role": "previously_inspected_development_not_held_out"
+}

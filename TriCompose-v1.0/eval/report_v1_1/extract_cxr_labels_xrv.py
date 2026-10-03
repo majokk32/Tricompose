@@ -8,11 +8,14 @@ Default 0.5 thresholds are explicitly diagnostic and not paper-calibrated.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 import os
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from contracts import (
     CHEXPERT_FINDINGS,
@@ -26,6 +29,7 @@ from contracts import (
     sha256_file,
     write_private_json,
 )
+from xrv_calibration import BUNDLE_SCHEMA, SCORE_SPACE, validate_bundle
 
 
 SCHEMA_VERSION = "tricompose-cxr-finding-labels-v1.1"
@@ -62,6 +66,9 @@ class FrozenXRVRuntime:
         weight = (cache_dir / weight_filename).resolve(strict=True)
         if not weight.is_file():
             raise ValueError("frozen XRV checkpoint is missing")
+        expected_filename = Path(urlparse(xrv.models.model_urls[model_name]["weights_url"]).path).name
+        if weight.name != expected_filename:
+            raise ValueError("requested checkpoint does not match XRV model selection")
         self.torch = torch
         self.xrv = xrv
         self.device = torch.device("cuda:0")
@@ -69,6 +76,10 @@ class FrozenXRVRuntime:
             weights=model_name,
             cache_dir=str(cache_dir),
         ).to(self.device)
+        if Path(self.model.weights_filename_local).resolve(strict=True) != weight:
+            raise ValueError("loaded XRV checkpoint differs from recorded checkpoint")
+        if self.model.op_threshs is None:
+            raise ValueError("this adapter requires operating-point-normalized XRV scores")
         self.model.eval().requires_grad_(False)
         self.crop = xrv.datasets.XRayCenterCrop()
         self.resize = xrv.datasets.XRayResizer(224)
@@ -116,7 +127,7 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _thresholds(path: str | None) -> tuple[dict[str, dict[str, float]], dict[str, Any]]:
+def _thresholds(path: str | None, *, checkpoint_sha256=None, expected_provenance=None) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     if path is None:
         values = {
             finding: {"negative_max": 0.5, "positive_min": 0.5}
@@ -129,6 +140,13 @@ def _thresholds(path: str | None) -> tuple[dict[str, dict[str, float]], dict[str
         }
     source = require_inside(path, PROTECTED_ROOT, must_exist=True)
     payload = read_json(source)
+    if payload.get("schema_version") == BUNDLE_SCHEMA:
+        values = validate_bundle(payload, checkpoint_sha256=checkpoint_sha256,
+                                 expected_provenance=expected_provenance)
+        return values, {"status": payload["calibration_status"],
+                        "primary_metric_eligible": False,
+                        "source_sha256": sha256_file(source),
+                        "provenance": payload["provenance"]}
     if payload.get("schema_version") != THRESHOLD_SCHEMA:
         raise ValueError("unsupported XRV threshold schema")
     findings = payload.get("findings")
@@ -143,15 +161,19 @@ def _thresholds(path: str | None) -> tuple[dict[str, dict[str, float]], dict[str
         if not 0.0 <= low <= high <= 1.0:
             raise ValueError("XRV thresholds are outside [0,1]")
         values[finding] = {"negative_max": low, "positive_min": high}
-    eligible = payload.get("calibration_status") == "calibrated_on_matched_real_validation"
     return values, {
         "status": payload.get("calibration_status"),
-        "primary_metric_eligible": eligible,
+        "primary_metric_eligible": False,
+        "eligibility_reason": "legacy_bundle_lacks_verified_checkpoint_and_split_provenance",
         "source_sha256": sha256_file(source),
     }
 
 
-def _state(probability: float, thresholds: dict[str, float]) -> str:
+def _state(probability: float, thresholds: dict[str, Any]) -> str:
+    if not math.isfinite(probability) or not 0 <= probability <= 1:
+        raise ValueError("invalid frozen classifier score")
+    if thresholds.get("enabled") is False:
+        return "unknown"
     if probability >= thresholds["positive_min"]:
         return "positive"
     if probability <= thresholds["negative_max"]:
@@ -160,6 +182,8 @@ def _state(probability: float, thresholds: dict[str, float]) -> str:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if not os.environ.get("SLURM_JOB_ID"):
+        raise RuntimeError("XRV inference requires an approved Slurm allocation")
     import torch
 
     if not torch.cuda.is_available():
@@ -169,11 +193,25 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if not weight.is_file():
         raise ValueError("frozen XRV checkpoint is missing")
     cxrs = load_cxr_candidates(args.cxr_run)
-    threshold_values, calibration = _thresholds(args.thresholds)
     runtime = FrozenXRVRuntime(
         cache_dir=cache_dir,
         weight_filename=args.weight_filename,
         model_name=args.model_name,
+    )
+    checkpoint_hash = sha256_file(weight)
+    preprocessing = {
+        "image": "PIL_L_float32", "normalize_maxval": 255,
+        "crop": "XRayCenterCrop", "resize": "XRayResizer_224",
+        "xrv_models_source_sha256": sha256_file(Path(runtime.xrv.models.__file__)),
+        "xrv_datasets_source_sha256": sha256_file(Path(runtime.xrv.datasets.__file__)),
+    }
+    fingerprint = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+    scorer_provenance = {"score_space": SCORE_SPACE,
+                         "preprocessing_sha256": fingerprint(preprocessing),
+                         "finding_mapping_sha256": fingerprint(XRV_LABELS)}
+    threshold_values, calibration = _thresholds(
+        args.thresholds, checkpoint_sha256=checkpoint_hash,
+        expected_provenance=scorer_provenance,
     )
     if runtime.model.training or any(
         parameter.requires_grad for parameter in runtime.model.parameters()
@@ -209,9 +247,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "producer": {
             "model_id": args.model_name,
             "frozen": True,
-            "checkpoint_sha256": sha256_file(weight),
+            "checkpoint_sha256": checkpoint_hash,
             "checkpoint_size_bytes": weight.stat().st_size,
+            **scorer_provenance,
         },
+        "score_semantics": SCORE_SPACE,
+        "finding_probabilities_is_legacy_field_name": True,
+        "probability_semantics": False,
         "primary_metric_eligible": calibration["primary_metric_eligible"],
         "calibration": calibration,
         "thresholds": threshold_values,
@@ -224,6 +266,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
 def main() -> int:
     args = _parser().parse_args()
+    if not os.environ.get("SLURM_JOB_ID"):
+        print(json.dumps({"status": "refused", "reason": "approved_slurm_required"}))
+        return 2
     os.umask(0o007)
     started = time.monotonic()
     temporary, target = new_atomic_run(args.output_root, args.run_id)
@@ -234,9 +279,10 @@ def main() -> int:
         output = write_private_json(temporary / "cxr_finding_labels.json", payload)
         output_hash = sha256_file(output)
         commit_atomic_run(temporary, target)
-    except Exception:
+    except Exception as exc:
         discard_atomic_run(temporary)
-        raise
+        print(json.dumps({"status": "failed", "error_type": type(exc).__name__}))
+        return 1
     print(
         json.dumps(
             {

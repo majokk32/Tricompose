@@ -61,7 +61,7 @@ class V11FactsAndPromptsTests(unittest.TestCase):
         self.assertIn("radiographic findings are unspecified", rendered["text"].lower())
         self.assertTrue(rendered["context_is_not_a_radiographic_assertion"])
 
-    def test_same_direct_finding_with_different_context_does_not_collapse(self) -> None:
+    def test_same_indication_with_different_context_does_not_collapse(self) -> None:
         copd = extract_v11_facts(
             _canonical(["I50_Congestive heart failure", "J44_Chronic airway obstruction"])
         )
@@ -73,8 +73,40 @@ class V11FactsAndPromptsTests(unittest.TestCase):
             second = render_v11_prompt(asthma, model_id)
             self.assertNotEqual(first["clinical_intent_sha256"], second["clinical_intent_sha256"])
             self.assertNotEqual(first["prompt_sha256"], second["prompt_sha256"])
-            self.assertEqual(first["included_direct_fact_ids"], ["congestive_heart_failure"])
-            self.assertEqual(second["included_direct_fact_ids"], ["congestive_heart_failure"])
+            self.assertEqual(first["included_direct_fact_ids"], [])
+            self.assertEqual(second["included_direct_fact_ids"], [])
+            self.assertIn("congestive_heart_failure", first["included_context_ids"])
+
+    def test_chf_alone_does_not_assert_image_pathology(self) -> None:
+        facts = extract_v11_facts(_canonical(["I50_Congestive heart failure"]))
+        self.assertEqual(facts["summary"]["direct_positive_fact_count"], 0)
+        self.assertEqual(facts["summary"]["conditioning_tier"], "clinical_context_only")
+        for model in ACTIVE_PROMPT_MODELS_V11:
+            rendered = render_v11_prompt(facts, model)
+            self.assertEqual(rendered["included_direct_fact_ids"], [])
+            self.assertEqual(rendered["derived_rule_ids"], [])
+            self.assertIn("heart failure", rendered["text"].lower())
+            for term in ("cardiomegaly", "edema", "congestion"):
+                self.assertNotIn(term, rendered["text"].lower())
+
+    def test_chf_with_explicit_edema_keeps_only_evidenced_finding(self) -> None:
+        facts = extract_v11_facts(_canonical(["I50_Heart failure", "J81_Pulmonary edema"]))
+        for model in ACTIVE_PROMPT_MODELS_V11:
+            rendered = render_v11_prompt(facts, model)
+            self.assertEqual(rendered["included_direct_fact_ids"], ["pulmonary_edema"])
+            self.assertNotIn("cardiomegaly", rendered["text"].lower())
+
+    def test_negative_uncertain_and_historical_chf_are_not_positive_context(self) -> None:
+        for description in ("No heart failure", "Possible heart failure", "History of heart failure"):
+            facts = extract_v11_facts(_canonical(["Z_" + description]))
+            self.assertEqual(facts["clinical_contexts"]["congestive_heart_failure"]["status"], "unknown")
+        facts = extract_v11_facts(_canonical(["I50_Heart failure"], ["I10_Hypertension"]))
+        self.assertEqual(facts["clinical_contexts"]["congestive_heart_failure"]["status"], "unknown")
+
+    def test_organism_substring_is_not_pneumonia(self) -> None:
+        facts = extract_v11_facts(_canonical(["B_Klebsiella pneumoniae infection"]))
+        self.assertEqual(facts["direct_facts"]["pneumonia"]["state"], "unknown")
+        self.assertEqual(facts["direct_facts"]["pneumonia"]["evidence"], [])
 
     def test_all_models_share_intent_but_use_model_specific_surfaces(self) -> None:
         facts = extract_v11_facts(

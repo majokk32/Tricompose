@@ -198,7 +198,13 @@ def score_direct_ehr_report(
     return result
 
 
-def _binary_metrics(labels: list[int], probabilities: list[float]) -> dict[str, Any]:
+def _binary_metrics(
+    labels: list[int], probabilities: list[float], *, probability_semantics: bool = False,
+) -> dict[str, Any]:
+    if len(labels) != len(probabilities) or any(y not in (0, 1) for y in labels):
+        raise ValueError("invalid binary metric inputs")
+    if any(not math.isfinite(p) or not 0 <= p <= 1 for p in probabilities):
+        raise ValueError("score must be finite and in [0,1]")
     positives = sum(labels)
     negatives = len(labels) - positives
     if not labels:
@@ -226,30 +232,39 @@ def _binary_metrics(labels: list[int], probabilities: list[float]) -> dict[str, 
         ece += len(bucket) / len(labels) * abs(accuracy - confidence)
     if positives == 0 or negatives == 0:
         return {
-            "status": "diagnostic_calibration_only_single_reference_class",
+            "status": "diagnostic_calibration_only_single_reference_class" if probability_semantics else "not_applicable_ranking_single_reference_class",
             "count": len(labels),
             "positive_count": positives,
             "negative_count": negatives,
             "auroc": None,
             "auprc": None,
-            "brier": round(brier, 8),
-            "ece_10bin": round(ece, 8),
+            "brier": round(brier, 8) if probability_semantics else None,
+            "ece_10bin": round(ece, 8) if probability_semantics else None,
         }
     positive_probabilities = [p for y, p in zip(labels, probabilities, strict=True) if y == 1]
     negative_probabilities = [p for y, p in zip(labels, probabilities, strict=True) if y == 0]
     wins = sum(
-        1.0 if positive > negative else 0.5 if math.isclose(positive, negative) else 0.0
+        1.0 if positive > negative else 0.5 if positive == negative else 0.0
         for positive in positive_probabilities
         for negative in negative_probabilities
     )
     auroc = wins / (positives * negatives)
     ordered = sorted(zip(probabilities, labels, strict=True), reverse=True)
     true_positives = 0
+    retrieved = 0
     precision_sum = 0.0
-    for rank, (_, label) in enumerate(ordered, start=1):
-        if label:
-            true_positives += 1
-            precision_sum += true_positives / rank
+    # Average precision over distinct thresholds. Equal scores must enter
+    # together; sorting (score, label) used to give positives an unfair lead.
+    index = 0
+    while index < len(ordered):
+        end = index + 1
+        while end < len(ordered) and ordered[end][0] == ordered[index][0]:
+            end += 1
+        group_positives = sum(label for _, label in ordered[index:end])
+        true_positives += group_positives
+        retrieved += end - index
+        precision_sum += group_positives * true_positives / retrieved
+        index = end
     return {
         "status": "computed_diagnostic_uncalibrated_classifier",
         "count": len(labels),
@@ -257,8 +272,8 @@ def _binary_metrics(labels: list[int], probabilities: list[float]) -> dict[str, 
         "negative_count": negatives,
         "auroc": round(auroc, 8),
         "auprc": round(precision_sum / positives, 8),
-        "brier": round(brier, 8),
-        "ece_10bin": round(ece, 8),
+        "brier": round(brier, 8) if probability_semantics else None,
+        "ece_10bin": round(ece, 8) if probability_semantics else None,
     }
 
 
@@ -266,6 +281,7 @@ def probability_metrics(
     records: Iterable[Mapping[str, Any]],
     *,
     finding_order: Iterable[str] = PRIMARY_EHR_CXR_FINDINGS,
+    probability_semantics: bool = False,
 ) -> dict[str, Any]:
     """Compute AUROC/AUPRC/Brier/ECE only where explicit binary EHR labels exist."""
 
@@ -285,15 +301,18 @@ def probability_metrics(
                 continue
             labels.append(int(state == "positive"))
             probabilities.append(float(probability))
-        output[finding] = _binary_metrics(labels, probabilities)
+        output[finding] = _binary_metrics(labels, probabilities, probability_semantics=probability_semantics)
         pooled_labels.extend(labels)
         pooled_probabilities.extend(probabilities)
     return {
         "interpretation": (
             "Diagnostic only until evaluated on a held-out explicit-label cohort; "
-            "weak priors are excluded from AUROC/AUPRC/Brier/ECE."
+            "weak priors are excluded. Brier/ECE require declared probability "
+            "semantics and are unavailable for XRV operating-point-normalized scores."
         ),
-        "overall": _binary_metrics(pooled_labels, pooled_probabilities),
+        "probability_semantics": probability_semantics,
+        "auprc_definition": "noninterpolated_average_precision_ties_grouped_v2",
+        "overall": _binary_metrics(pooled_labels, pooled_probabilities, probability_semantics=probability_semantics),
         "per_disease": output,
     }
 

@@ -1,0 +1,28 @@
+{
+  "schema_version": "tricompose-automatic-proxy-replay-policy-v1",
+  "policy_id": "legacy_pool80_automatic_heuristic_replay_v1",
+  "image_order": [
+    ["chexgenbench_sana", 0],
+    ["chexgenbench_pixart", 0],
+    ["roentgen_v2", 0]
+  ],
+  "report_order": ["maira2", "cxrmate_single", "llavarad", "chexagent2"],
+  "model_call_budgets": [4, 8, 12, 20, 30],
+  "random_seeds": [0, 1, 2, 3, 4],
+  "candidate_selection_key": "existing_v11_lexicographic_not_full_bank_rank",
+  "routing_evidence": "legacy_fourteen_raw_uncalibrated_xrv_chexbert_states",
+  "raw_report_states_are_unverified_proxies": true,
+  "secondary_scores_used_for_routing": false,
+  "requires_human_feedback_for_replay": false,
+  "clinical_accuracy_claim_allowed": false,
+  "cost_contract": {
+    "new_cxr_generator_calls": 1,
+    "new_cxr_xrv_calls": 1,
+    "new_report_generator_calls": 1,
+    "new_report_chexbert_calls": 1,
+    "unit": "simulated_single_case_model_invocations",
+    "ehr_generation_is_shared_sunk_cost": true,
+    "secondary_evaluation_cost_not_free": true,
+    "prospective_gpu_seconds": null
+  }
+}

@@ -66,6 +66,8 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if not os.environ.get("SLURM_JOB_ID"):
+        raise RuntimeError("CheXbert inference requires an approved Slurm allocation")
     import torch
     from tools.chexbert import CheXbert
 

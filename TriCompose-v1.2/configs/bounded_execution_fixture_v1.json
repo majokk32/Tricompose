@@ -1,0 +1,10 @@
+{
+  "schema_version": "tricompose-bounded-execution-fixture-policy-v1",
+  "execution_mode": "invented_fixture_no_models",
+  "call_budget_per_case": 5,
+  "max_retries_per_operation": 1,
+  "case_ids": ["fixture_execution_000", "fixture_execution_001"],
+  "clinical_acceptance_allowed": false,
+  "inference_backend_installed": false,
+  "fixture_results_are_generation_outputs": false
+}

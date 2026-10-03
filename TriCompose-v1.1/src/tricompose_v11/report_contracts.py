@@ -21,6 +21,8 @@ from .cxr_contracts import (
     write_private_json,
 )
 from .cxr_execution import CXR_CANDIDATE_RUN_SCHEMA_V11, CXR_CANDIDATE_SCHEMA_V11
+from .tokenizer_audit import audit_references
+from .tokenizer_trace import validate_tokenizer_trace
 
 
 ACTIVE_REPORT_MODELS_V11 = (
@@ -50,6 +52,7 @@ def validate_cxr_candidate(candidate: Mapping[str, Any]) -> None:
         raise ValueError("CXR candidate image hash mismatch")
     if artifact.get("mime_type") != "image/png":
         raise ValueError("CXR candidate is not a PNG")
+    validate_tokenizer_trace(candidate, MAIN_PROTECTED_ROOT)
 
 
 def load_cxr_candidates(cxr_runs: Iterable[str | Path]) -> list[dict[str, Any]]:
@@ -82,7 +85,8 @@ def load_cxr_candidates(cxr_runs: Iterable[str | Path]) -> list[dict[str, Any]]:
 
 
 def build_report_request(
-    *, cxr_candidate: Mapping[str, Any], report_model_id: str
+    *, cxr_candidate: Mapping[str, Any], report_model_id: str,
+    cxr_input_audit: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     validate_cxr_candidate(cxr_candidate)
     if report_model_id not in ACTIVE_REPORT_MODELS_V11:
@@ -112,6 +116,8 @@ def build_report_request(
             "source_report_or_real_target_supplied": False,
         },
     }
+    if cxr_input_audit is not None:
+        request["inputs"]["cxr_prompt_input_audit"] = dict(cxr_input_audit)
     validate_report_request(request)
     return request
 
@@ -144,6 +150,19 @@ def validate_report_request(request: Mapping[str, Any]) -> None:
         raise ValueError("single-image report request unexpectedly supplies EHR")
     if inputs.get("source_report_or_real_target_supplied") is not False:
         raise ValueError("report request leaks a source target")
+    audit = inputs.get("cxr_prompt_input_audit")
+    if audit is not None:
+        if audit.get("audit_status") != "current_source_reconstruction_only" or audit.get("runtime_observed") is not False:
+            raise ValueError("unsupported historical input audit status")
+        for prefix in ("manifest", "record"):
+            path = require_inside(audit[f"{prefix}_path"], MAIN_PROTECTED_ROOT, must_exist=True)
+            if sha256_file(path) != audit[f"{prefix}_sha256"]:
+                raise ValueError("report input audit hash mismatch")
+        record = read_json(audit["record_path"])
+        if record.get("candidate_id") != cxr_id or record.get("cxr_candidate_canonical_sha256") != inputs["cxr_candidate_sha256"] or record.get("cxr_image_sha256") != artifact["sha256"]:
+            raise ValueError("report input audit is bound to a different candidate")
+        if record.get("runtime_observed") is not False:
+            raise ValueError("report input audit observation status mismatch")
 
 
 def prepare_report_request_run(
@@ -152,6 +171,7 @@ def prepare_report_request_run(
     output_root: str | Path,
     run_id: str,
     model_ids: Iterable[str] = ACTIVE_REPORT_MODELS_V11,
+    cxr_input_audit_run: str | Path | None = None,
 ) -> dict[str, Any]:
     if not RUN_ID_PATTERN.fullmatch(run_id):
         raise ValueError("run ID must be opaque and filesystem-safe")
@@ -162,8 +182,10 @@ def prepare_report_request_run(
         raise ValueError("report request run contains an inactive model")
     source_values = tuple(cxr_runs)
     candidates = load_cxr_candidates(source_values)
+    audits = audit_references(cxr_input_audit_run, candidates) if cxr_input_audit_run else {}
     requests = [
-        build_report_request(cxr_candidate=candidate, report_model_id=model)
+        build_report_request(cxr_candidate=candidate, report_model_id=model,
+                             cxr_input_audit=audits.get(candidate["candidate_id"]))
         for candidate in candidates
         for model in models
     ]
@@ -218,6 +240,7 @@ def prepare_report_request_run(
                 "requests": records,
                 "gpu_inference_used": False,
                 "raw_source_target_used": False,
+                "cxr_prompt_input_audit_status": "current_source_reconstruction_only" if audits else "not_supplied",
             },
         )
         os.rename(temporary, target)

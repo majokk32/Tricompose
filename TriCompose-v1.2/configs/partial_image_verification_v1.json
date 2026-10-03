@@ -1,0 +1,15 @@
+{
+  "schema_version": "tricompose-partial-image-verification-policy-v1",
+  "profile": "legacy_fourteen_raw_uncalibrated_xrv_chexbert_states",
+  "reference": "unchanged_invariant_ehr_anchor",
+  "phase": "cxr_and_cached_xrv_available_report_not_generated",
+  "report_edges_when_not_generated": null,
+  "unknown_uncertain_are_negative": false,
+  "uses_report_labels_scores_or_votes_for_image_receipt": false,
+  "weak_context_is_hard_constraint": false,
+  "overwrites_partial_receipts": false,
+  "changes_original_routing_selection_or_costs": false,
+  "model_execution_allowed": false,
+  "clinical_acceptance_allowed": false,
+  "clinical_repair_success_allowed": false
+}

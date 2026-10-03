@@ -16,11 +16,11 @@ ACTIVE_PROMPT_MODELS_V11 = (
     "chexgenbench_sana",
     "chexgenbench_pixart",
 )
-CLINICAL_INTENT_VERSION_V11 = "tricompose_v1_1_clinical_intent_v2"
+CLINICAL_INTENT_VERSION_V11 = "tricompose_v1_1_clinical_intent_v3"
 RENDERER_VERSIONS_V11 = {
-    "roentgen_v2": "roentgen_v2.ehr_context_prompt.v1_1_3",
-    "chexgenbench_sana": "chexgenbench_sana.ehr_context_prompt.v1_1",
-    "chexgenbench_pixart": "chexgenbench_pixart.ehr_context_prompt.v1_1",
+    "roentgen_v2": "roentgen_v2.ehr_context_prompt.v1_1_4",
+    "chexgenbench_sana": "chexgenbench_sana.ehr_context_prompt.v1_1_4",
+    "chexgenbench_pixart": "chexgenbench_pixart.ehr_context_prompt.v1_1_4",
 }
 
 AGE_GROUPS = {
@@ -51,10 +51,6 @@ DIRECT_SENTENCES = {
     "central_venous_catheter": "A central venous catheter is present.",
     "enteric_tube": "An enteric tube is present.",
     "cardiac_pacemaker": "A cardiac pacemaker and leads are present.",
-    "congestive_heart_failure": (
-        "Cardiomegaly with pulmonary vascular congestion and interstitial edema "
-        "compatible with congestive heart failure is present."
-    ),
 }
 
 ROENTGEN_FINDING_PHRASES = {
@@ -70,10 +66,6 @@ ROENTGEN_FINDING_PHRASES = {
     "central_venous_catheter": "central venous catheter",
     "enteric_tube": "enteric tube",
     "cardiac_pacemaker": "cardiac pacemaker and leads",
-    "congestive_heart_failure": (
-        "cardiomegaly, vascular congestion, and interstitial edema compatible "
-        "with congestive heart failure"
-    ),
 }
 
 if tuple(DIRECT_SENTENCES) != IMAGE_CONDITION_FACT_IDS:
@@ -82,7 +74,6 @@ if tuple(ROENTGEN_FINDING_PHRASES) != IMAGE_CONDITION_FACT_IDS:
     raise RuntimeError("V1.1 RoentGen finding inventory and renderer diverged")
 
 DERIVED_RULES_V11 = {
-    "congestive_heart_failure": "congestive_heart_failure_to_cxr_prior_v1",
     "pneumonia": "pneumonia_to_airspace_opacity_prior_v1",
     "atelectasis": "atelectasis_to_opacity_prior_v1",
 }
@@ -111,7 +102,7 @@ def _intent(payload: Mapping[str, Any]) -> dict[str, Any]:
     contexts = [
         context_id
         for context_id in CONTEXT_LABELS
-        if payload["clinical_contexts"][context_id]["status"] == "documented"
+        if payload["clinical_contexts"].get(context_id, {}).get("status") == "documented"
     ]
     return {
         "version": CLINICAL_INTENT_VERSION_V11,

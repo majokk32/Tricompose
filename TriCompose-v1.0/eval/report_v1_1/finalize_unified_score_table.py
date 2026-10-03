@@ -25,6 +25,7 @@ from contracts import (
     write_private_json,
     write_private_text,
 )
+from candidate_grid import validate_grid
 
 
 SCHEMA_VERSION = "tricompose-unified-score-table-v1.1"
@@ -229,6 +230,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("unsupported cross-modal evidence")
     policy, policy_source = _load_policy(args.policy_config)
     skeleton_rows = _read_jsonl(skeleton_run / "score_table.jsonl")
+    grid = validate_grid(skeleton_rows, skeleton_summary.get("cohort_contract"))
     evidence_rows = crossmodal.get("records")
     if not isinstance(evidence_rows, list):
         raise TypeError("cross-modal evidence lacks candidate records")
@@ -295,8 +297,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         }
         rows.append(row)
 
-    if len(rows) != 960 or len({str(row["case_id"]) for row in rows}) != 80:
-        raise ValueError("final score table must preserve the complete 80x12 grid")
+    validate_grid(rows, grid)
     scores = [row["static_scoring"]["total_score"] for row in rows]
     valid_scores = [float(value) for value in scores if value is not None]
     applicability = {
@@ -315,6 +316,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "table_status": "complete_frozen_evidence",
+        "cohort_contract": grid,
         "diagnostic_selection_ready": all(row["selection"]["diagnostic_eligible"] for row in rows),
         "paper_primary_selection_ready": all(row["selection"]["paper_primary_eligible"] for row in rows),
         "primary_metric_status": crossmodal["primary_metric_status"],

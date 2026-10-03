@@ -6,6 +6,7 @@ import unittest
 
 from contracts import CHEXPERT_FINDINGS
 from ehr_edge_metrics import (
+    _binary_metrics,
     probability_metrics,
     score_direct_ehr_report,
     score_weak_priors,
@@ -86,7 +87,7 @@ class EHREdgeMetricTests(unittest.TestCase):
                         for finding in CHEXPERT_FINDINGS
                     },
                 }
-            ]
+            ], probability_semantics=True,
         )
         pneumonia = result["per_disease"]["pneumonia"]
         self.assertEqual(
@@ -95,6 +96,21 @@ class EHREdgeMetricTests(unittest.TestCase):
         )
         self.assertIsNone(pneumonia["auroc"])
         self.assertAlmostEqual(pneumonia["brier"], 0.04)
+
+    def test_equal_scores_do_not_get_perfect_average_precision(self):
+        result = _binary_metrics([0, 1], [0.5, 0.5])
+        self.assertEqual(result["auprc"], 0.5)
+        self.assertEqual(result["auroc"], 0.5)
+        self.assertIsNone(result["brier"])
+        self.assertIsNone(result["ece_10bin"])
+
+    def test_average_precision_is_order_invariant(self):
+        self.assertEqual(_binary_metrics([0, 1, 1], [0.5, 0.5, 0.9]),
+                         _binary_metrics([1, 0, 1], [0.9, 0.5, 0.5]))
+
+    def test_nonfinite_metric_input_fails(self):
+        with self.assertRaises(ValueError):
+            _binary_metrics([1], [float("nan")])
 
 
 if __name__ == "__main__":

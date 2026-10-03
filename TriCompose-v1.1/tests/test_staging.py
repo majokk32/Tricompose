@@ -43,6 +43,16 @@ def _canonical(case_id: str, diagnosis: str) -> dict:
 
 
 class V11StagingTests(unittest.TestCase):
+    def test_unique_prompts_need_not_increase_to_be_valid(self) -> None:
+        row = {"v1_prompt_sha256": dict.fromkeys(ACTIVE_PROMPT_MODELS, "a"),
+               "v1_1_prompt_sha256": dict.fromkeys(ACTIVE_PROMPT_MODELS, "b"),
+               "conditioning_tier": "neutral_fallback", "included_context_ids": [],
+               "included_direct_fact_ids": [], "clinical_intent_sha256": "c",
+               "checks": {"unknown_not_rendered": True}}
+        result = staging._validation_report(run_id="unit", staged=[row], source_case_count=1)
+        self.assertTrue(result["overall_valid"])
+        self.assertFalse(result["prompt_uniqueness_improved"])
+
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory(prefix="tricompose_v11_")
         self.workspace = Path(self.temp.name)

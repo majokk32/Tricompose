@@ -1,0 +1,17 @@
+{
+  "schema_version": "tricompose-live-frozen-worker-smoke-policy-v1",
+  "source_request_run": "artifacts/protected/tricompose_v1_1/cxr_requests/pool80_all3_s1_20260813_b208",
+  "source_endpoint_run": "artifacts/protected/tricompose_v1_2/automatic_replays/automatic_secondary_pool80_12607645_001",
+  "opaque_case_indices": [0, 1],
+  "image_slots": [["roentgen_v2", 0], ["chexgenbench_sana", 0]],
+  "report_models": ["cxrmate_single"],
+  "call_budget_per_case": 10,
+  "max_retries_per_operation": 1,
+  "timeout_seconds_per_worker_process": 180,
+  "thresholds_path": "artifacts/protected/tricompose_v1_2/real_validation/real_xrv_thresholds_12549079/thresholds.json",
+  "retains_underconditioned_cases": true,
+  "changes_existing_ehr_or_prompts": false,
+  "selection_or_adaptive_repair_enabled": false,
+  "clinical_acceptance_allowed": false,
+  "new_training_allowed": false
+}

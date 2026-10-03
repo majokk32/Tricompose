@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -136,6 +137,9 @@ def main() -> int:
     parser.add_argument("--vision-dir")
     parser.add_argument("--precision", choices=("float32", "bfloat16"))
     args = parser.parse_args()
+    if not os.environ.get("SLURM_JOB_ID"):
+        print(json.dumps({"status": "refused", "reason": "approved_slurm_required"}))
+        return 2
     try:
         revision, audit, factory = _model_components(args)
         result = run_report_request_run(
@@ -155,7 +159,6 @@ def main() -> int:
                 {
                     "status": "failed",
                     "error_type": type(exc).__name__,
-                    "error": str(exc),
                 }
             ),
             file=sys.stderr,

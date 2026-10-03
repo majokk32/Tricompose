@@ -77,6 +77,8 @@ def _load_runtime(model_path: Path, device: Any) -> tuple[Any, Any]:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    if not os.environ.get("SLURM_JOB_ID"):
+        raise RuntimeError("BioViL inference requires an approved Slurm allocation")
     import torch
 
     if not torch.cuda.is_available():
