@@ -1,5 +1,19 @@
 # TriCompose V1.2: controlled-intervention preparation
 
+Latest joined action diagnostic (2026-10-09):
+`agent/summarize_fresh_action_effects.py` combines two report-only switches,
+two RoentGen seed changes and two Sana generator/renderer/seed changes on
+the same TWO synthetic EHR anchors. It preserves the different baselines,
+six paired denominators, original proxy gates and 20 downstream attempts in
+the two source jobs; no new scorer, model call or winner replacement. None
+passes its original gate, and EHR–CXR support remains0/1 throughout. This
+does not establish clinical image faults or a controlled action-type ranking.
+Fourteen new fixtures and all3,988 V1.2 tests pass. Results and limitations:
+`docs/fresh_action_effects_result.md`; protected detailed CSV:
+`artifacts/protected/tricompose_v1_2/fresh_action_effects/action_effects_12851223_001/action_effects.csv`.
+Further GPU execution still requires a new complete script/resource review
+and explicit approval. No original consumed worker/protocol/run was edited.
+
 Current LLM-routing prototype (2026-10-08): code is grouped in `agent/`, entry
 point `agent/run.py`; usage and privacy/execution limits are documented in
 `docs/llm_agent.md` at the workspace root. It reuses the old OpenAI-compatible
