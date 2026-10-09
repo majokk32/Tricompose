@@ -1,4 +1,10 @@
-# Text-conditioning interface diagnostic: prepared, NOT submitted
+# Text conditioning diagnostic execution status
+
+Completed after complete-script/resource review and explicit approval:
+job `12864717`, one V100 on `d11-03`,3m35s,exit0:0. All eight images and
+eight XRV observations completed,16 charged inference attempts,three loads,
+zero failures/retries. Metadata hash/cost/paired-row replay passed. Results:
+`docs/text_conditioning_probe_result.md`. No further GPU submission is approved.
 
 2026-10-09, actual existing CPU Slurm12851223. This is the next small generation
 diagnostic after the joined report/image action readout. It does not update a
@@ -45,13 +51,14 @@ plan, output-parent, job-runtime and Slurm-log directories are2770 with
 CARC NFS project-boundary GID65534; the plan manifest is0660. Batch shell
 syntax passed. No GPU job was submitted during these checks.
 
-After complete script/resource display, obtain NEW explicit approval before:
+The following command was submitted once after complete script/resource
+display and new explicit approval. Do not submit again or overwrite its run:
 
 ```bash
 sbatch TriCompose-v1.2/agent/slurm/20_text_conditioning_probe8_v100.sbatch
 ```
 
-Expected NEW protected output: `text_conditioning_probe_runs/text_probe_<job>/`.
+Completed protected output: `text_conditioning_probe_runs/text_probe_12864717/`.
 Files include eight generation slots (including failures), four paired rows,
 `paired_readout.csv`, XRV numeric predictions, tokenizer traces, images and
 charged journals. Patient-derived data and credentials are never copied into

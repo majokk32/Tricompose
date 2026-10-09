@@ -1,5 +1,23 @@
 # TriCompose V1.2: controlled-intervention preparation
 
+Latest text-conditioning diagnostic (2026-10-09), **job 12864717**:
+`agent/run_text_conditioning_probe.py` ran two invented present/absent MAIN
+prompts, seeds0,1, with unchanged RoentGen-v2/Sana native settings, then the
+unchanged XRV observer. The complete V100 script/resources were displayed,
+explicitly approved and submitted unchanged: one V100, two CPUs,32G RAM,
+15-minute cap. It completed on d11-03 in **3m35s**,exit0:0: all eight images
+and eight classifier slots complete,16 charged inference attempts,three model
+loads,zero failures/retries. All four paired tokenizer-ID/image-byte hashes
+differed, and pneumonia/consolidation raw scores increased under the positive
+text; one RoentGen seed had a small delta. These are not clinical accuracy,
+EHR fidelity, repair success or an LLM advantage. Original EHRs,facts,prompts,
+scorers,thresholds and selected triples remain unchanged. CPU metadata/hash/
+cost replay passed;16 new fixtures and all **4,004 V1.2 tests** passed before
+execution. See `docs/text_conditioning_probe_result.md` and its immutable
+protocol. Output:
+`artifacts/protected/tricompose_v1_2/text_conditioning_probe_runs/text_probe_12864717/`.
+Further GPU work requires new complete script/resource review and approval.
+
 Latest joined action diagnostic (2026-10-09):
 `agent/summarize_fresh_action_effects.py` combines two report-only switches,
 two RoentGen seed changes and two Sana generator/renderer/seed changes on
