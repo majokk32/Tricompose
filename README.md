@@ -3,7 +3,7 @@
 TriCompose 组合冻结的现有模型，生成并验证 structured EHR、胸部 X-ray 和
 radiology report 三模态候选。
 
-## Current research status — September 2026
+## Current research status — October 9, 2026
 
 The current main line is the fully synthetic V1.0/V1.1 pipeline, not the early
 Phase-0 real-anchor smoke test documented later on this page.
@@ -12,11 +12,25 @@ Phase-0 real-anchor smoke test documented later on this page.
 |---|---|---|
 | V1.0 | Frozen generation graph and static best-of-N baseline | Implemented engineering baseline; evaluators are not clinically calibrated |
 | V1.1 | Prompt de-collapse plus explainable three-edge evaluation | Substantially implemented; calibration and paper-primary validation remain |
-| V1.2 | Error localization and targeted regeneration | Planned, not yet validated |
-| V1.3 | Paper-grade scale-up, independent evaluation, and human review | Planned |
+| V1.2 | Bounded frozen-worker composition, verification, and local-Qwen routing | Engineering prototype and fresh execution implemented; clinical repair and LLM advantage not validated |
+| V1.3 | Paper-grade scale-up and independent evaluation | Evaluator diagnostics/proxy benchmarks available; paper-primary validation remains |
+
+Latest completed generation contrast: two fixed fully synthetic EHR anchors,
+RoentGen-v2 seed 2 versus Sana seed 1, each image with its own XRV,
+CXRMate-single report and CheXbert output. Job 12862704 completed four triples
+and 16 charged requests in 4m02s, without training or changing prompts/scorers.
+The unchanged exploratory preservation gate passes 0/4; this is not evidence
+of successful clinical repair. All 3,974 V1.2 tests passed. Generated content,
+datasets, checkpoints, caches and credentials remain excluded from Git.
 
 Current documentation:
 
+- [`TriCompose-v1.2/README.md`](TriCompose-v1.2/README.md): current frozen-worker,
+  verification, routing and benchmark progress with evidence boundaries;
+- [`docs/llm_agent.md`](docs/llm_agent.md): local-Qwen and optional API interfaces,
+  budgets, privacy constraints and actual-run results;
+- [`docs/cxr_action_diversification_result.md`](docs/cxr_action_diversification_result.md):
+  latest fixed-EHR generation contrast, exact readouts and limitations;
 - [`docs/version_roadmap_zh.md`](docs/version_roadmap_zh.md): 中文主逻辑；如果只看
   一份文件，优先看这个；
 - [`docs/version_roadmap.md`](docs/version_roadmap.md): accurate version
@@ -31,9 +45,9 @@ Current documentation:
   literature-backed metric design.
 
 All deployed report generators in the aligned V1/V1.1 pool are
-CXR-conditioned. `CXRMate-single` is not CXRMate-ED, so an independent-path
-error-localization claim is reserved for V1.2 and requires either a true
-EHR+CXR report path or controlled-injection validation.
+CXR-conditioned. `CXRMate-single` is not CXRMate-ED. V1.2 worker execution
+does not establish independent-path clinical error localization; that claim
+still requires suitable independently validated evidence and controls.
 
 Package version `0.0.1` and research protocol versions V1.0/V1.1 are separate
 version axes.

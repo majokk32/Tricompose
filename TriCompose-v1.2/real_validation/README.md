@@ -13,6 +13,9 @@ checkpoint.
 | `audit_official_report_gold.py` | Official report-label schema, state and linkage coverage only | Completed metadata audit; no text/image model validation |
 | `run_official_report_benchmark.py` | Frozen CheXbert versus manual report labels, with missingness and scope | Job 12594397 completed; 12.025 seconds, 1.227 GiB allocated peak |
 | `biovil_fact_polarity.py` | Same image, authored positive/negative finding statements, three fixed templates | Job 12597637 completed; 45.827 seconds, 0.576 GiB allocated peak |
+| `acquire_rsua.py` | Official public CC BY 4.0 archive acquisition and metadata-only integrity inspection | Completed; 33.1 MiB Validated ZIP, published checksum verified; no model calls |
+| `rsua_pilot.py` | Sealed 25+25 published pneumonia/normal-proxy cohort; guarded frozen XRV scoring | Approved job 12636566 completed in 23s; AUROC 0.7248, low sensitivity; not clinical qualification |
+| `rsua_biovil.py` | Same 50 images, three frozen polarity probes and unchanged-XRV disagreement diagnostic | Approved job 12637081 completed in 15s; mean-margin AUROC 0.5520, default-XRV disagreement 22/50; no repair authorization |
 
 Complete Slurm scripts are under `../slurm/`. Scripts 26 and 27 received
 separate explicit approval before submission. Script 25 records the historical
@@ -90,3 +93,10 @@ is the next clinical-validation requirement. Do not replace it with correlated
 model votes or publish mechanical intervention labels as clinical truth.
 
 See [the frozen polarity protocol](../../docs/biovil_fact_polarity_protocol.md).
+The [RSUA pilot protocol](../../docs/rsua_pneumonia_pilot.md) specifies the new
+public resource's weaker cohort-class reference, pre-score selection, unchanged
+operating profiles and explicit submission gate. It does not alter the existing
+independent image-adjudication requirement.
+The [same-cohort BioViL follow-up](../../docs/rsua_biovil_followup.md) freezes
+all templates and their mean before scoring; model disagreement is not clinical
+adjudication, and existing XRV thresholds/choices remain unchanged.

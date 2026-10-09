@@ -1,0 +1,32 @@
+{
+  "schema_version": "tricompose-medcpt-query-assets-v1",
+  "repository": "ncbi/MedCPT-Query-Encoder",
+  "revision": "d83a36cc6b8e3a5c5e9d9d6ba156808c1643dcbc",
+  "license": "public-domain",
+  "maximum_download_bytes": 500000000,
+  "files": [
+    {"path": "LICENSE", "bytes": 1239, "sha256": "76b0009b86bfcb6dbbe5d51aa95a8103ddb2e9d582dca41c3d88e371175ce34e"},
+    {"path": "README.md", "bytes": 4121, "sha256": "4451e5399fe6e8c5a4b9db86ad9ae324e2b337f0f4c7e963aaf6131b3e8dd635"},
+    {"path": "added_tokens.json", "bytes": 74, "sha256": "691a5ce0135045c12b8410af8d472ff8de864094df40ac9af418d6c644c7588d"},
+    {"path": "config.json", "bytes": 608, "sha256": "3fea00b31d018d676d6b7e2f6cddcfe1abc69bcb88f5f09f51b848212e1671d1"},
+    {"path": "special_tokens_map.json", "bytes": 125, "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"},
+    {"path": "tokenizer.json", "bytes": 706277, "sha256": "6e046044df8a2fcedb10607075dca187cae61d806c0d80a96c5b81017edc90c9"},
+    {"path": "tokenizer_config.json", "bytes": 1488, "sha256": "cabeefb4bbba68c42d40a56bfc1e73dd2e5dfb6e0ca90a66349519c375452d1e"},
+    {"path": "vocab.txt", "bytes": 226150, "sha256": "79489a52be45e6fa033521e8ce8e4f62aedc0a742ee2aa6fc04667e5b0b1454d"},
+    {"path": "model.safetensors", "bytes": 437951328, "sha256": "19d78c0d5eaee2f81e6c47c5425bbadcc0c6af016cbb5da4a000d64e59d6e342"}
+  ],
+  "source_documentation": {
+    "repository": "ncbi/MedCPT",
+    "revision": "11e129be74102c98d16a11c310b0b5ce74c1db5e",
+    "files": [
+      {"path": "LICENSE", "bytes": 1240, "sha256": "455605fa53ddcfbfc59bae8a097c4b0452f7a45810519dbed9be57c6dd370289"},
+      {"path": "README.md", "bytes": 12135, "sha256": "aa6083cb5494605ff27427e049517b3fdc5da839a2de128ed7bf8cfe46226a89"}
+    ]
+  },
+  "scope": "approved public checkpoint acquisition and wholly authored CPU probes only",
+  "train": false,
+  "clinical_qualified": false,
+  "replace_biolord_in_official_ratescore": false,
+  "selection_changed": false,
+  "regeneration_authorized": false
+}

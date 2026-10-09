@@ -1,0 +1,29 @@
+{
+  "schema_version": "tricompose-report-order-control-v1-protocol",
+  "cohort": "unchanged_development_pool80",
+  "fixed_ehr_cases": 80,
+  "caps": [4, 8, 12, 20, 30],
+  "initial_image": ["chexgenbench_sana", 0],
+  "initial_report": "maira2",
+  "orders": [
+    ["maira2", "cxrmate_single", "llavarad", "chexagent2"],
+    ["maira2", "cxrmate_single", "chexagent2", "llavarad"],
+    ["maira2", "llavarad", "cxrmate_single", "chexagent2"],
+    ["maira2", "llavarad", "chexagent2", "cxrmate_single"],
+    ["maira2", "chexagent2", "cxrmate_single", "llavarad"],
+    ["maira2", "chexagent2", "llavarad", "cxrmate_single"]
+  ],
+  "commit_guard": "unchanged_probe_repair_v1_action_credit",
+  "acquisition": "fixed_prefix_no_early_need_based_stopping",
+  "all_orders_retained": true,
+  "estimands": ["case_weighted", "equal_conditioning_group"],
+  "clinical_intent_groups": 49,
+  "choose_order_using_secondary": false,
+  "choose_order_on_final_test": false,
+  "clinical_qualified": false,
+  "training_allowed": false,
+  "image_regeneration_allowed": false,
+  "posthoc_development_control": true,
+  "actual_regeneration_executed": false,
+  "old_choices_and_rules_changed": false
+}

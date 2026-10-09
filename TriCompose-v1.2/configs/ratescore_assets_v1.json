@@ -1,0 +1,55 @@
+{
+  "schema_version": "tricompose-ratescore-public-assets-v1",
+  "metadata_observed_on": "2026-10-06",
+  "source": {
+    "repository": "MAGIC-AI4Med/RaTEScore",
+    "revision": "a970406b6f4155f7c7a9cb0d29b4fe94437e3361",
+    "files": [
+      {"path": "LICENSE", "bytes": 1114, "sha256": "9afa25e52733ed06a92c9e3dadc9c2d36fb040c42909fb6d1e9d92a455075c90"},
+      {"path": "README.md", "bytes": 4406, "sha256": "841fdf0b7bb66e2aa06672d387e3e1cea27c98052e93662e9eb5d14882bd353b"},
+      {"path": "setup.py", "bytes": 440, "sha256": "91268d4b8599bb05065ef02c00820259a27a9002ad741b8901b4735eb119c937"},
+      {"path": "RaTEScore/__init__.py", "bytes": 50, "sha256": "df0e5c5c21cae5e9a87b16c9fa6a584207fd753e1e1c00610cac22167778f36d"},
+      {"path": "RaTEScore/score.py", "bytes": 2699, "sha256": "27641dddf5ddffa5f67e3fcfa4e0cc9c4f887dda58eb06f1bc0655f3802d7aac"},
+      {"path": "RaTEScore/scorer.py", "bytes": 8990, "sha256": "adcf7644f9d4b9bcc7d91a94d1e62979e6e1b3caea6c895a661365d47e0ef89f"},
+      {"path": "RaTEScore/utils.py", "bytes": 5109, "sha256": "2311a9462cafb25afb184c8da4ffd79d13ca05a8a4fb3b2bf1d299e5714dde59"}
+    ]
+  },
+  "models": [
+    {
+      "name": "ner",
+      "repository": "Angelakeke/RaTE-NER-Deberta",
+      "revision": "66d4b8189374f9b137e1b8633951ca4b4d758673",
+      "license": "mit",
+      "files": [
+        {"path": "README.md", "bytes": 5244, "sha256": "942d447a8ffda9ead964091dffdb594bc6fa343bdeefb54c911a18c89cd2876f"},
+        {"path": "config.json", "bytes": 1439, "sha256": "54dd4e8195e8594146c89af45a54cdf67e29b71e2979dd24aae196cfc11edf24"},
+        {"path": "added_tokens.json", "bytes": 23, "sha256": "dc046d04c9b0ada7ae6f1dc89c465801799acdf0c9a6aab8c15a1b2d5ca4e91f"},
+        {"path": "special_tokens_map.json", "bytes": 286, "sha256": "9463f61e1b109a8eb4688b829260d7c6b1e6dff04c98ff7269bb89e2b92369b9"},
+        {"path": "tokenizer.json", "bytes": 8656646, "sha256": "05402ffae6dd382a8491b1d29bfc139bec5d332662e86a026f433ce54c25c202"},
+        {"path": "tokenizer_config.json", "bytes": 1284, "sha256": "557b3d33d3f41b81ad769244e506549e98a1857d41dd58160aacd4d98d710b5a"},
+        {"path": "spm.model", "bytes": 2464616, "sha256": "c679fbf93643d19aab7ee10c0b99e460bdbc02fedf34b92b05af343b4af586fd"},
+        {"path": "model.safetensors", "bytes": 735384420, "sha256": "b380aae68a26fc608cbb568994006910d0fc7156c63fd05308b3bbaf77ed53f2"}
+      ]
+    },
+    {
+      "name": "encoder",
+      "repository": "FremyCompany/BioLORD-2023-C",
+      "revision": "4bb5abd13930002136e3a5750b84474763c775c5",
+      "license": "UMLS and SNOMED CT licensing confirmation required by model author",
+      "files": [
+        {"path": "README.md", "bytes": 7174, "sha256": "5d75c2f7e6303bc3620abe1d340c8d25ef556d48c2cfb2dd4ac0e7c682cdd3a3"},
+        {"path": "config.json", "bytes": 693, "sha256": "fb1fe36beae900aefd2ab7e82f5484a3f5c3258bec12a7bb65640c05ddf7bec9"},
+        {"path": "sentence_bert_config.json", "bytes": 53, "sha256": "70f4448f31320443fe3557cacea5abf2dcc4915dda8c80646bec9f3bb0aa5a1f"},
+        {"path": "special_tokens_map.json", "bytes": 239, "sha256": "9ef40e9c160511bf3f46ceb71f1471dafa1e9473d5120bb816c36b2efa75f8ba"},
+        {"path": "tokenizer_config.json", "bytes": 1271, "sha256": "99d291450cad8c10d9b172409d64d3fad2721e5da2bec09202d4841a896222b0"},
+        {"path": "vocab.txt", "bytes": 231536, "sha256": "dbd90cb94e2247bd4d4ccaecbf616d2290e66691d7d5e5bb81f063c2d0649ada"},
+        {"path": "model.safetensors", "bytes": 437971872, "sha256": "6164f3a7476eaaeee4b7fa2d4dea655f8ca1927853b867d59fb9d66507f5d36f"}
+      ]
+    }
+  ],
+  "maximum_asset_bytes": 1300000000,
+  "download_authentication": "none; public HTTPS only; no credential files or implicit HF token",
+  "clinical_qualified": false,
+  "selection_changed": false,
+  "regeneration_authorized": false
+}

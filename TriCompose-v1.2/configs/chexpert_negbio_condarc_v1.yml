@@ -1,0 +1,11 @@
+# Workspace-local configuration; never register environments in the user home.
+register_envs: false
+notify_outdated_conda: false
+report_errors: false
+channel_priority: flexible
+pkgs_dirs:
+  - /project2/ruishanl_1185/inference_3mod/.cache/chexpert_negbio/conda_pkgs
+envs_dirs:
+  - /project2/ruishanl_1185/inference_3mod/runtime/venvs
+solver: classic
+always_yes: true

@@ -1,0 +1,20 @@
+{
+  "schema_version": "manual-opacity-inventory-request-v1",
+  "source_intake": "artifacts/protected/tricompose_v1_2/reference_datasets/cxrgraph_source_12766754_001",
+  "source_intake_manifest_sha256": "6b50154bf091e03bd2c6bb9a2d592dce31bb06a9156e3de6ca853626d36eece7",
+  "source_file": "source/manual_data/dev.json",
+  "source_file_sha256": "4c2d80d73ebaf01c9b7ba786168ae5bab33739f630306f2182b14a5e5bd050e5",
+  "source_bytes": 212072,
+  "prior_test_contract": "artifacts/protected/tricompose_v1_2/cxrgraph_gold_contracts/manual_test_12766754_001",
+  "prior_test_manifest_sha256": "19f61d54c4cfda59212564e615f14518f9e3ce5cab3c71a59b9e1da9cdd56c15",
+  "source_inventory": "all_released_dev_documents_in_file_order",
+  "maximum_reports": 1024,
+  "literal_pattern": "\\b(?P<head>opacit(?:y|ies))\\b",
+  "normality_expansion": false,
+  "synonyms_added": false,
+  "anatomy_qualifier_temporal_scope_verified": false,
+  "new_model_calls": 0,
+  "new_training": false,
+  "clinical_qualified": false,
+  "regeneration_authorized": false
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "tricompose-unchanged-guard-headroom-v1-protocol",
+  "cases": 80,
+  "slots_per_case": 12,
+  "caps": [4, 8, 12, 20, 30],
+  "initial_cost": 4,
+  "report_cost": 2,
+  "image_cost": 4,
+  "guard": "unchanged_probe_repair_v1_action_credit",
+  "comparison": "exact_fact_identity_partial_order_not_weighted_score",
+  "full_information_oracle": true,
+  "rejected_attempt_cost_avoided_by_oracle": true,
+  "secondary_endpoint_read": false,
+  "training_allowed": false,
+  "actual_regeneration_executed": false,
+  "clinical_qualified": false
+}

@@ -1,6 +1,6 @@
 # TriCompose version roadmap
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
 
 [中文版](version_roadmap_zh.md)
 
@@ -8,6 +8,13 @@ This roadmap separates repository implementation from validated research
 claims. A source file or Slurm script being present means that an implementation
 exists; it does not prove that a protected CARC run completed or that a clinical
 claim has been validated.
+
+Server audit and implementation update: [2026-09-22 progress](server_progress_20260922.md).
+V1.2 and V1.3 now have written protocols, not validated implementations:
+[localization protocol](v1_2_localization_protocol.md) and
+[independent evaluation protocol](v1_3_evaluation_protocol.md).
+The score-table and benchmark design for further development is in
+[further development](further_development.md).
 
 ## Objective
 

@@ -31,6 +31,11 @@
 /SynEHRgy-v2/
 /cxrmate/
 /maria-2/
+/chexpert-labeler/
+/NegBio/
+/RadGraph/
+/RaTEScore/
+/MedCPT/
 
 # Model weights and packaged model artifacts.
 *.ckpt
@@ -60,6 +65,7 @@
 *.arrow
 /data/
 /datasets/
+/physionet.org/
 
 # Python environments, caches, coverage, and build products.
 __pycache__/

@@ -1,0 +1,10 @@
+# Project compatibility pins, not an upstream environment lock.
+# Torch CPU is installed separately from its official CPU wheel index.
+numpy==1.26.4
+pandas==2.2.3
+transformers==4.44.2
+huggingface_hub==0.36.2
+medspacy==1.3.1
+spacy==3.7.5
+sentencepiece==0.2.0
+protobuf==4.25.8

@@ -153,3 +153,25 @@ All 740 synthetic-only tests pass, including mocked-clock deadline, terminal
 failure and no-premature-audit tests. The GPU job is still pending, not a
 completed result. Slurm's initial estimated 12:50 start is **PDT local time**,
 equivalent to 19:50 UTC; estimates can change and are not completion guarantees.
+
+## Completed run and observer, 2026-10-03
+
+The pending statements above are retained chronological preparation snapshots.
+Approved GPU job **12622258 completed**, exit `0:0`, elapsed **00:02:13**.
+The run `fixed_image_report_runs/fixed_reports4_12622258/` under the protected
+V1.2 root contains all four new MAIRA reports and all eight endpoint scores.
+The frozen pre-endpoint selector retains CXRMate-single on all four images;
+its EHR-averaged paired BioViL gain is zero. No EHR/image or original winner
+changed, and unavailable direct EHR-edge evidence remains NA.
+
+The CPU observer completed and its hash-bound audit passed recomputation of
+proxy rows, selection, endpoint pairing, CSV, durable cost journal and protected
+modes, without report-body/image-pixel review or new model calls. The manifest
+still explicitly denies clinical acceptance, repair and independent clinical
+truth. Allocation duration is not measured GPU-kernel time.
+
+The separate [score coverage diagnostic](score_coverage_diagnostic_protocol.md)
+now analyzes this fresh control and the complete historical candidate bank in
+separate profiles. It preserves the zero-gain result and every original choice;
+no threshold or policy is tuned to BioViL. Detailed diagnostic tables stay in
+the new protected `score_coverage_diagnostics/score_coverage_12621834_001/` run.

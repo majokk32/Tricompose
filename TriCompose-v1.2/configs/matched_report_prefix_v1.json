@@ -1,0 +1,17 @@
+{
+  "schema_version": "tricompose-matched-guard-report-prefix-v1-protocol",
+  "cohort": "unchanged_development_pool80",
+  "fixed_ehr_cases": 80,
+  "caps": [4, 8, 12, 20, 30],
+  "initial_image": ["chexgenbench_sana", 0],
+  "report_order": ["maira2", "cxrmate_single", "llavarad", "chexagent2"],
+  "commit_guard": "unchanged_probe_repair_v1_action_credit",
+  "acquisition": "fixed_report_prefix_no_early_need_based_stopping",
+  "image_regeneration_allowed": false,
+  "training_allowed": false,
+  "secondary_endpoint_used_for_selection": false,
+  "actual_regeneration_executed": false,
+  "clinical_qualified": false,
+  "posthoc_development_control": true,
+  "old_choices_and_rules_changed": false
+}
