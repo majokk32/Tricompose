@@ -1,6 +1,11 @@
 # 固定 EHR prompt 顺序对照的提交准备
 
-2026-10-09。CPU staging 已完成，GPU 尚未提交。固定原两个 synthetic EHR、
+2026-10-09。作业 `12883369` 已按获批脚本完成，A40 上耗时 1m35s；16 张图和
+16 次 XRV 评分全部完成，0 失败或重试，只读 postflight 通过。
+完整数值与限制见 `docs/fixed_ehr_prompt_order_result.md`。这份准备记录用于追溯
+已消费的计划，不应再次提交相同 run 或改动 sealed code、tests、protocol 和 plan。
+
+CPU staging 固定原两个 synthetic EHR、
 两种已部署的冻结 CXR 模型、seeds 0 和 1，比较封存原文字句与 finding block
 前置后的文字句，共 16 个生成位置、8 组配对，最多 16 次 XRV 评分。
 本轮没有新 report、planner、API、训练、下载或 winner 替换。
@@ -53,14 +58,14 @@ CARC `sinfo` 确认 node features 和 GRES 对应 V100/A40，分区均允许该�
 可扩大候选节点范围；这不保证立即启动或一定优于某个单分区队列。
 语法依据：[Slurm 官方 sbatch 文档](https://slurm.schedmd.com/sbatch.html)。
 
-只有完整展示新脚本和资源申请、获得新的明确批准之后才能执行：
+完整新脚本与资源申请展示并获用户明确批准后，已执行以下命令：
 
 ```bash
 sbatch TriCompose-v1.2/agent/slurm/21_fixed_ehr_prompt_order16_gpu_flexible.sbatch
 ```
 
-新输出将位于
-`artifacts/protected/tricompose_v1_2/fixed_ehr_prompt_order_runs/prompt_order_<job>/`。
-保留全部生成位置、8 个配对行、raw XRV 分数、tokenizer traces、images 与
+本次输出位于
+`artifacts/protected/tricompose_v1_2/fixed_ehr_prompt_order_runs/prompt_order_12883369/`。
+保留全部 16 个生成位置、8 个配对行、raw XRV 分数、tokenizer traces、images 与
 charged journals；clinical accuracy/acceptance 不成立，缺失值保留 NA。
 解释边界与固定实验设置见 `docs/fixed_ehr_prompt_order_protocol.md`。
