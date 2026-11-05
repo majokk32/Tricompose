@@ -1,5 +1,9 @@
 # TriCompose
 
+**Current overview (2026-11-05):** [README_TRICOMPOSE_CURRENT.md](README_TRICOMPOSE_CURRENT.md).
+This page preserves historical project notes; use the current overview for
+verified metrics, model roles, connectors, Agent status, and research gaps.
+
 TriCompose 组合冻结的现有模型，生成并验证 structured EHR、胸部 X-ray 和
 radiology report 三模态候选。
 
