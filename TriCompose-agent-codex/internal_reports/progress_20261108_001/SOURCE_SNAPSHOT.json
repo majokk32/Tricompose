@@ -1,0 +1,26 @@
+{
+  "purpose": "Chinese project progress report based on explicitly allowlisted summaries only",
+  "source_date_label": "2026-11-08",
+  "source_sha256": {
+    "TriCompose-agent/RESULTS_20261108.md": "e24ee84bc7b315cf6f54274ea26c809658c247f5cec992317a1de5d6d3182356",
+    "TriCompose-agent/README.md": "1534d1983bb9c81e240436d261d7479c290c303b56a4a29496c986ed28eea11f",
+    "TriCompose-agent/BENCHMARK_PLAN.md": "aee6075cc4e7e091bb1d74d62f8cac4f3267ccd8f1e8710178ae6cb571b40d88",
+    "TriCompose-agent-codex/bench/TRIBENCH_SPEC.md": "16703d1c7df456706403ab7e6b98f1d97b233ed1b66300109cbb8282aae37ae3",
+    "TriCompose-agent-codex/bench/CLAIMS.md": "0aa0d0db1b40acb6dab9d5f56da388046cf7f8d0e231ef5c9e1254aadbbf97a6",
+    "TriCompose-agent-codex/bench/REVIEW_C1.txt": "1969cbd356d12b160b1d11ed27c529989e4a51fd3ed99e04a34176cea3d87487"
+  },
+  "opening_docstrings_count": 88,
+  "opening_docstrings_collection_sha256": "344ca613ac892942ce923501ee3b61789e63a8ca4782ba3b7e9dcf407caef187",
+  "initial_opening_docstrings_count": 86,
+  "initial_opening_docstrings_collection_sha256": "fa8a871d6e6aa7451c935f4cce8cc9a4351a2f612c5d78f1a2589e45d1de74f4",
+  "docstrings_added_during_writing": ["TriCompose-agent/p4.py", "TriCompose-agent/test_p4.py"],
+  "summary_updates_incorporated_during_writing": ["G1T completed results", "M3 v2 completed results", "P4 prepared only"],
+  "python_bodies_read": false,
+  "protected_directory_content_read": false,
+  "raw_patient_data_included": false,
+  "images_included": false,
+  "external_page_created": false,
+  "git_push_performed_at_authoring": false,
+  "sharing": "subsequently_authorized_by_user_for_github_sync_of_aggregate_documents_only",
+  "github_sync_scope": ["REPORT_CN.md", "SOURCE_SNAPSHOT.json"]
+}
